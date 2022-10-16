@@ -692,15 +692,15 @@ namespace Gomoku
     };
     MainForm::MainForm(const MainForm& Form) :
         BaseForm::BaseForm(Form),
-        hWnd(nullptr), hMenu(nullptr), gdiplusStartupInput(), gdiplusToken(),
+        hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
         CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false) {};
     MainForm::MainForm() :
         BaseForm::BaseForm(),
-        hWnd(nullptr), hMenu(nullptr), gdiplusStartupInput(), gdiplusToken(),
+        hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
         CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false) {};
     MainForm::MainForm(std::uint8_t BoardOffset, std::uint8_t BoardWide, std::uint8_t ChessPadding, float ChessSizeScale, float ChessTouchScale, float ChessShadowScale, float ChessMarginScale) :
         BaseForm::BaseForm(BoardOffset, BoardWide, ChessPadding, ChessSizeScale, ChessTouchScale, ChessShadowScale, ChessMarginScale),
-        hWnd(nullptr), hMenu(nullptr), gdiplusStartupInput(), gdiplusToken(),
+        hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
         CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false) {};
 }
 int WINAPI wWinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrevInst, _In_ LPWSTR args, _In_ int nCmdShow)

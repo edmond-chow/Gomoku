@@ -2,21 +2,21 @@
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-namespace 五子棋
+namespace Gomoku
 {
     public partial class MainForm : Form
     {
-        private static readonly byte WinConst;
-        private static readonly byte BoardSize;
+        private const byte WinConst = 5;
+        private const byte BoardSize = 15;
         private static byte MaxRound
         {
             get { return (byte)Math.Pow(BoardSize, 2); }
         }
-        private static readonly string Title;
-        private static readonly string TitleBlackWin;
-        private static readonly string TitleWhiteWin;
-        private static readonly string TitleTied;
-        private static readonly string ResetMenuText;
+        private const string Title = "五子棋";
+        private const string TitleBlackWin = "五子棋［黑方勝利］";
+        private const string TitleWhiteWin = "五子棋［白方勝利］";
+        private const string TitleTied = "五子棋［和局］";
+        private const string ResetMenuText = "重置";
         private static readonly Color BoardWideColor;
         private static readonly Color BoardOffsetColor;
         private static readonly Color BlackChessLightColor;
@@ -24,13 +24,13 @@ namespace 五子棋
         private static readonly Color WhiteChessLightColor;
         private static readonly Color WhiteChessDarkColor;
         private static readonly Color ShadowColor;
-        private static readonly int DefaultBoardOffset;
-        private static readonly int DefaultBoardWide;
-        private static readonly int DefaultChessPadding;
-        private static readonly float DefaultChessSizeScale;
-        private static readonly float DefaultChessTouchScale;
-        private static readonly float DefaultChessShadowScale;
-        private static readonly float DefaultChessMarginScale;
+        private const int DefaultBoardOffset = 80;
+        private const int DefaultBoardWide = 3;
+        private const int DefaultChessPadding = 40;
+        private const float DefaultChessSizeScale = 0.75F;
+        private const float DefaultChessTouchScale = 0.9F;
+        private const float DefaultChessShadowScale = 1.5F;
+        private const float DefaultChessMarginScale = 0.5F;
         private readonly int BoardOffset;
         private readonly int BoardWide;
         private int BoardClientSize
@@ -86,13 +86,6 @@ namespace 五子棋
         private MenuItem MyMenuItem;
         static MainForm()
         {
-            WinConst = 5;
-            BoardSize = 15;
-            Title = "五子棋";
-            TitleBlackWin = "五子棋［黑方勝利］";
-            TitleWhiteWin = "五子棋［白方勝利］";
-            TitleTied = "五子棋［和局］";
-            ResetMenuText = "重置";
             BoardOffsetColor = Color.Wheat;
             BoardWideColor = Color.BurlyWood;
             BlackChessLightColor = SystemColors.ControlDark;
@@ -100,13 +93,6 @@ namespace 五子棋
             WhiteChessLightColor = Color.White;
             WhiteChessDarkColor = SystemColors.Control;
             ShadowColor = Color.FromArgb(16, 0, 0, 0);
-            DefaultBoardOffset = 80;
-            DefaultBoardWide = 3;
-            DefaultChessPadding = 40;
-            DefaultChessSizeScale = 0.75F;
-            DefaultChessTouchScale = 0.9F;
-            DefaultChessShadowScale = 1.5F;
-            DefaultChessMarginScale = 0.5F;
         }
         public MainForm()
         {
@@ -137,10 +123,7 @@ namespace 五子棋
             MyMenuItem.Click += new EventHandler(ResetMenu_Click);
             Menu = MyMainMenu;
             InitializeComponent();
-            Location = new Point(Screen.PrimaryScreen.Bounds.Width / 2 - Size.Width / 2, Screen.PrimaryScreen.Bounds.Height / 2 - Size.Height / 2);
-            ClientSize = new System.Drawing.Size(BoardClientSize, BoardClientSize);
-            CaptureBP = BoardPosition.NullCapture;
-            CaptureHold = false;
+            ClientSize = new Size(BoardClientSize, BoardClientSize);
         }
         private class BoardPosition
         {
@@ -155,26 +138,42 @@ namespace 五子棋
             {
                 get { return YCoordinate; }
             }
-            static BoardPosition() { NullCapture = new BoardPosition(); }
-            public BoardPosition()
+            static BoardPosition()
             {
-                XCoordinate = 0xF;
-                YCoordinate = 0xF;
+                NullCapture = null;
             }
             public BoardPosition(byte XCoordinate, byte YCoordinate)
             {
                 this.XCoordinate = XCoordinate;
                 this.YCoordinate = YCoordinate;
             }
-            public static bool operator ==(BoardPosition l, BoardPosition r) { return l.XCoordinate == r.XCoordinate && l.YCoordinate == r.YCoordinate; }
-            public static bool operator !=(BoardPosition l, BoardPosition r) { return !(l == r); }
-            public override string ToString() { return base.ToString(); }
+            private static bool ValueEquals(BoardPosition l, BoardPosition r)
+            {
+                return l.XCoordinate == r.XCoordinate && l.YCoordinate == r.YCoordinate;
+            }
+            public static bool operator ==(BoardPosition l, BoardPosition r)
+            {
+                if (l is null && r is null) { return true; }
+                else if(l is null || r is null) { return false; }
+                else { return ValueEquals(l, r); }
+            }
+            public static bool operator !=(BoardPosition l, BoardPosition r)
+            {
+                return !(l == r);
+            }
+            public override string ToString()
+            {
+                return base.ToString();
+            }
             public override bool Equals(object obj)
             {
                 if (obj is BoardPosition) { return this == obj as BoardPosition; }
                 return base.Equals(obj);
             }
-            public override int GetHashCode() { return base.GetHashCode(); }
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
         }
         private enum BoardResult
         {
@@ -183,13 +182,16 @@ namespace 五子棋
             Tied = 0,
             None = 2,
         }
-        private void MainForm_Paint(object sender, PaintEventArgs e) { RePaint(e.Graphics); }
-        private void Reset(Graphics Paint)
+        private void Reset()
         {
-            MainForm_Load(null, null);
-            RePaint(Paint);
+            CaptureBP = BoardPosition.NullCapture;
+            CaptureHold = false;
+            Text = Title;
+            MyMenuItem.Enabled = false;
+            Board = new sbyte[BoardSize, BoardSize];
+            Round = 0;
         }
-        private void RePaint(Graphics Paint)
+        private void Draw(Graphics Paint)
         {
             Paint.Clear(BoardOffsetColor);
             int ResetOffset = BoardOffset + BoardWide / 2;
@@ -228,7 +230,10 @@ namespace 五子棋
             if (NearestY < 0 || NearestY > BoardSize - 1) { return BoardPosition.NullCapture; }
             return new BoardPosition((byte)NearestX, (byte)NearestY);
         }
-        private Point GetPoint(BoardPosition BP) { return new Point(BoardOffset + (BoardWide + ChessPadding) * BP.X + BoardWide / 2, BoardOffset + (BoardWide + ChessPadding) * BP.Y + BoardWide / 2); }
+        private Point GetPoint(BoardPosition BP)
+        {
+            return new Point(BoardOffset + (BoardWide + ChessPadding) * BP.X + BoardWide / 2, BoardOffset + (BoardWide + ChessPadding) * BP.Y + BoardWide / 2);
+        }
         private bool CanPutChess(Point Touch)
         {
             if (Round >= MaxRound) { return false; }
@@ -239,14 +244,6 @@ namespace 五子棋
             if (Round == 0 && !(Nearest.X == 7 && Nearest.Y == 7)) { return false; }
             if (Board[Nearest.X, Nearest.Y] != 0) { return false; }
             return true;
-        }
-        private BoardPosition PutChess(Point Touch)
-        {
-            BoardPosition Nearest = GetNearestPosition(Touch);
-            if (IsBlackTurn == true) { Board[Nearest.X, Nearest.Y] = 1; }
-            else { Board[Nearest.X, Nearest.Y] = -1; }
-            PaintChess(Nearest, IsBlackTurn);
-            return Nearest;
         }
         private void PaintChess(BoardPosition Nearest, bool IsBlackChess)
         {
@@ -306,7 +303,7 @@ namespace 五子棋
         private delegate sbyte CheckBoard(int i, int j, int k);
         private int BlackCase6C4(CaseRange Range, CaseBoard Board, CaseArray Array)
         {
-            if (Range.GetInvocationList().Length != 1 || Board.GetInvocationList().Length != 1 || Array.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Range.GetInvocationList().Length != 1 || Board.GetInvocationList().Length != 1 || Array.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             if (IsBlackTurn == false) { return 0; }
             int[] data = new int[6];
             for (int i = 0; i < 4; ++i)
@@ -319,7 +316,7 @@ namespace 五子棋
         }
         private int BlackBase6C4(BoardPosition BP, CaseArray Array)
         {
-            if (Array.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Array.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             if (IsBlackTurn == false) { return 0; }
             if (BP.X > BoardSize - 1 || BP.X < 0) { return 0; }
             if (BP.Y > BoardSize - 1 || BP.Y < 0) { return 0; }
@@ -346,7 +343,7 @@ namespace 五子棋
         }
         private int BlackCase5C5(CaseRange Range, CaseBoard Board, CaseArray Array)
         {
-            if (Range.GetInvocationList().Length != 1 || Board.GetInvocationList().Length != 1 || Array.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Range.GetInvocationList().Length != 1 || Board.GetInvocationList().Length != 1 || Array.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             if (IsBlackTurn == false) { return 0; }
             int[] data = new int[5];
             for (int i = 0; i < 5; ++i)
@@ -359,7 +356,7 @@ namespace 五子棋
         }
         private int BlackBase5C5(BoardPosition BP, CaseArray Array)
         {
-            if (Array.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Array.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             if (IsBlackTurn == false) { return 0; }
             if (BP.X > BoardSize - 1 || BP.X < 0) { return 0; }
             if (BP.Y > BoardSize - 1 || BP.Y < 0) { return 0; }
@@ -406,7 +403,7 @@ namespace 五子棋
         }
         private BoardResult CheckForWinProto(int i, int j, CheckBoard Board, CaseBoard Black)
         {
-            if (Black.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Black.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             int WinCount = 0;
             for (int k = 0; k < WinConst; ++k) { WinCount += Board(i, j, k); }
             if (WinCount == WinConst)
@@ -419,7 +416,7 @@ namespace 五子棋
         }
         private BoardResult CheckForWinCaseFlat(CheckBoard Board, CaseBoard Black)
         {
-            if (Black.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Black.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             for (int i = 0; i < BoardSize - 1; ++i)
             {
                 for (int j = 0; j < BoardSize - (WinConst - 1); ++j)
@@ -432,7 +429,7 @@ namespace 五子棋
         }
         private BoardResult CheckForWinCaseLean(CheckBoard Board, CaseBoard Black)
         {
-            if (Black.GetInvocationList().Length != 1) { throw new Exception(); }
+            if (Black.GetInvocationList().Length != 1) { throw new NotImplementedException(); }
             for (int i = -(BoardSize - WinConst + 1); i < BoardSize - WinConst + 1; ++i)
             {
                 for (int j = 0; j < BoardSize - Math.Abs(i) - WinConst + 1; ++j)
@@ -442,6 +439,14 @@ namespace 五子棋
                 }
             }
             return BoardResult.None;
+        }
+        private BoardPosition PutChess(Point Touch)
+        {
+            BoardPosition Nearest = GetNearestPosition(Touch);
+            if (IsBlackTurn == true) { Board[Nearest.X, Nearest.Y] = 1; }
+            else { Board[Nearest.X, Nearest.Y] = -1; }
+            PaintChess(Nearest, IsBlackTurn);
+            return Nearest;
         }
         private BoardResult CheckForWin(BoardPosition BP)
         {
@@ -477,11 +482,14 @@ namespace 五子棋
             else if (BR == BoardResult.Lost) { Text = TitleWhiteWin; }
             else { Text = TitleTied; }
         }
+        private void MainForm_MouseDown(object sender, MouseEventArgs e)
+        {
+            CaptureHold = true;
+        }
         private void MainForm_MouseMove(object sender, MouseEventArgs e)
         {
             if (CaptureHold == false) { SetShadow(e.Location); }
         }
-        private void MainForm_MouseDown(object sender, MouseEventArgs e) { CaptureHold = true; }
         private void MainForm_MouseUp(object sender, MouseEventArgs e)
         {
             if (CanPutChess(e.Location) && GetNearestPosition(e.Location) == CaptureBP)
@@ -492,13 +500,18 @@ namespace 五子棋
             ReleastShadow();
             CaptureHold = false;
         }
-        private void ResetMenu_Click(object sender, EventArgs e) { Reset(BoardPaint); }
+        private void ResetMenu_Click(object sender, EventArgs e)
+        {
+            Reset();
+            Draw(BoardPaint);
+        }
         private void MainForm_Load(object sender, EventArgs e)
         {
-            Text = Title;
-            MyMenuItem.Enabled = false;
-            Board = new sbyte[BoardSize, BoardSize];
-            Round = 0;
+            Reset();
+        }
+        private void MainForm_Paint(object sender, PaintEventArgs e)
+        {
+            Draw(e.Graphics);
         }
     }
 }

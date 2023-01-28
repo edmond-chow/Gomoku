@@ -116,10 +116,9 @@ namespace Gomoku
             None = 2,
         };
         void Reset() &;
-        void Load() &;
         virtual void OnReset() & = 0;
-        void RePaint() &;
-        virtual void OnPaint() & = 0;
+        void Draw() &;
+        virtual void OnDraw() & = 0;
         BoardPosition GetNearestPosition(const Point& Touch) const;
         bool CanPutChess(const Point& Touch) const;
         Point GetPoint(const BoardPosition& BP) const;
@@ -176,15 +175,18 @@ namespace Gomoku
     BaseForm::BaseForm(const BaseForm& Form) :
         disposed(true),
         BoardOffset(Form.BoardOffset), BoardWide(Form.BoardWide), ChessPadding(Form.ChessPadding), ChessSizeScale(Form.ChessSizeScale), ChessTouchScale(Form.ChessTouchScale), ChessShadowScale(Form.ChessShadowScale), ChessMarginScale(Form.ChessMarginScale),
-        Board(), Round() {};
+        Board(), Round()
+    {};
     BaseForm::BaseForm() :
         disposed(true),
         BoardOffset(DefaultBoardOffset), BoardWide(DefaultBoardWide), ChessPadding(DefaultChessPadding), ChessSizeScale(DefaultChessSizeScale), ChessTouchScale(DefaultChessTouchScale), ChessShadowScale(DefaultChessShadowScale), ChessMarginScale(DefaultChessMarginScale),
-        Board(), Round() {};
+        Board(), Round()
+    {};
     BaseForm::BaseForm(std::uint8_t BoardOffset, std::uint8_t BoardWide, std::uint8_t ChessPadding, float ChessSizeScale, float ChessTouchScale, float ChessShadowScale, float ChessMarginScale) :
         disposed(true),
         BoardOffset(BoardOffset), BoardWide(BoardWide), ChessPadding(ChessPadding), ChessSizeScale(ChessSizeScale), ChessTouchScale(ChessTouchScale), ChessShadowScale(ChessShadowScale), ChessMarginScale(ChessMarginScale),
-        Board(), Round() {};
+        Board(), Round()
+    {};
     void BaseForm::Run(BaseForm& Form) { Form.Constructor(); };
     void BaseForm::Run(BaseForm&& Form) { Form.Constructor(); };
     void BaseForm::RunAsync(BaseForm& Form) { std::thread([&Form]() -> void { Run(Form); }).detach(); };
@@ -209,11 +211,6 @@ namespace Gomoku
     constexpr const bool operator ==(const BaseForm::CaptureType& lhs, const BaseForm::CaptureType& rhs) noexcept { return lhs.getX() == rhs.getX() && lhs.getY() == rhs.getY(); };
     void BaseForm::Reset() &
     {
-        Load();
-        RePaint();
-    };
-    void BaseForm::Load() &
-    {
         for (std::uint8_t i = 0; i < BoardSize; ++i)
         {
             for (std::uint8_t j = 0; j < BoardSize; ++j) { Board[i][j] = 0; }
@@ -221,7 +218,10 @@ namespace Gomoku
         Round = 0;
         OnReset();
     };
-    void BaseForm::RePaint() & { OnPaint(); };
+    void BaseForm::Draw() &
+    {
+        OnDraw();
+    };
     BaseForm::BoardPosition BaseForm::GetNearestPosition(const Point& Touch) const
     {
         std::int32_t NearestOffset = BoardOffset - ChessPadding / 2;
@@ -467,7 +467,7 @@ namespace Gomoku
         bool CaptureHold;
         void OnLoad() override;
         void OnReset() & override;
-        void OnPaint() & override;
+        void OnDraw() & override;
         void PaintChess(const CaptureType& Nearest, bool IsBlackChess) & override;
         void HasResult(const BoardResult& BR) & override;
         void SetShadow(Point Capture);
@@ -518,11 +518,13 @@ namespace Gomoku
     };
     void MainForm::OnReset() &
     {
+        CaptureBP.~CaptureType();
+        new (&CaptureBP) CaptureType(CaptureType::NullCapture);
         SetWindowTextW(hWnd, Title.data());
         EnableMenuItem(hMenu, hMenuResetID, MF_DISABLED);
         SetMenu(hWnd, hMenu);
     };
-    void MainForm::OnPaint() &
+    void MainForm::OnDraw() &
     {
         Gdiplus::Graphics Paint(hWnd);
         Paint.Clear(BoardOffsetColor);
@@ -643,12 +645,12 @@ namespace Gomoku
         MainForm* ths = reinterpret_cast<MainForm*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
         switch (msg)
         {
-        case WM_MOUSEMOVE:
-            if (ths->CaptureHold == false) { ths->SetShadow(Point(LOWORD(lp), HIWORD(lp))); }
-            break;
         case WM_LBUTTONDOWN:
             SetCapture(hWnd);
             ths->CaptureHold = true;
+            break;
+        case WM_MOUSEMOVE:
+            if (ths->CaptureHold == false) { ths->SetShadow(Point(LOWORD(lp), HIWORD(lp))); }
             break;
         case WM_LBUTTONUP:
             if (ths->CaptureBP == ths->GetNearestPosition(Point(LOWORD(lp), HIWORD(lp))))
@@ -661,14 +663,12 @@ namespace Gomoku
             ths->CaptureHold = false;
             ReleaseCapture();
             break;
-        case WM_PAINT:
-            ths->RePaint();
-            break;
         case WM_COMMAND:
             switch (wp)
             {
             case hMenuResetID:
                 ths->Reset();
+                ths->Draw();
                 break;
             default:
                 break;
@@ -678,7 +678,10 @@ namespace Gomoku
             SetWindowLongPtrW(hWnd, GWLP_USERDATA, (LONG_PTR)(ths = (MainForm*)((LPCREATESTRUCT)lp)->lpCreateParams));
             Gdiplus::GdiplusStartup(&(ths->gdiplusToken), &(ths->gdiplusStartupInput), nullptr);
             ths->hWnd = hWnd;
-            ths->Load();
+            ths->Reset();
+            break;
+        case WM_PAINT:
+            ths->Draw();
             break;
         case WM_DESTROY:
             Gdiplus::GdiplusShutdown(ths->gdiplusToken);
@@ -693,15 +696,18 @@ namespace Gomoku
     MainForm::MainForm(const MainForm& Form) :
         BaseForm::BaseForm(Form),
         hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
-        CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false) {};
+        CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false)
+    {};
     MainForm::MainForm() :
         BaseForm::BaseForm(),
         hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
-        CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false) {};
+        CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false)
+    {};
     MainForm::MainForm(std::uint8_t BoardOffset, std::uint8_t BoardWide, std::uint8_t ChessPadding, float ChessSizeScale, float ChessTouchScale, float ChessShadowScale, float ChessMarginScale) :
         BaseForm::BaseForm(BoardOffset, BoardWide, ChessPadding, ChessSizeScale, ChessTouchScale, ChessShadowScale, ChessMarginScale),
         hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
-        CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false) {};
+        CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false)
+    {};
 }
 int WINAPI wWinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrevInst, _In_ LPWSTR args, _In_ int nCmdShow)
 {

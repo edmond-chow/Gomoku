@@ -1,4 +1,4 @@
-﻿namespace 五子棋
+﻿namespace Gomoku
 {
     partial class MainForm
     {

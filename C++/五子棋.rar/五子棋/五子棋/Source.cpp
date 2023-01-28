@@ -149,7 +149,7 @@ namespace Gomoku
         BoardResult CheckForWinCaseLean(const CheckBoard& Board, const CheckBlack& Black) &;
         BoardResult CheckForWin(const BoardPosition& BP) &;
     protected:
-        void Do(const Point& Point) &;
+        void Procedure(const Point& Point) &;
         void Dispose() &;
         static uintptr_t impl_count();
         static bool impl_array(const std::initializer_list<std::int8_t>& data, const std::initializer_list<std::int8_t>& satisfy);
@@ -436,9 +436,9 @@ namespace Gomoku
         if (Round == MaxRound) { return BoardResult::Tied; }
         return BoardResult::None;
     };
-    void BaseForm::Do(const Point& Point) &
+    void BaseForm::Procedure(const Point& Point) &
     {
-        if (CanPutChess(Point)) { Result(CheckForWin(PutChess(Point))); }
+        Result(CheckForWin(PutChess(Point)));
     };
     void BaseForm::Dispose() & { this->disposed = true; };
     std::uintptr_t BaseForm::impl_count()
@@ -643,6 +643,7 @@ namespace Gomoku
     LRESULT CALLBACK MainForm::WindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
     {
         MainForm* ths = reinterpret_cast<MainForm*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
+        Point pt{ LOWORD(lp), HIWORD(lp) };
         switch (msg)
         {
         case WM_LBUTTONDOWN:
@@ -650,12 +651,12 @@ namespace Gomoku
             ths->CaptureHold = true;
             break;
         case WM_MOUSEMOVE:
-            if (ths->CaptureHold == false) { ths->SetShadow(Point(LOWORD(lp), HIWORD(lp))); }
+            if (ths->CaptureHold == false) { ths->SetShadow(pt); }
             break;
         case WM_LBUTTONUP:
-            if (ths->CaptureBP == ths->GetNearestPosition(Point(LOWORD(lp), HIWORD(lp))))
+            if (ths->CanPutChess(pt) && ths->CaptureBP == ths->GetNearestPosition(pt))
             {
-                ths->Do(Point(LOWORD(lp), HIWORD(lp)));
+                ths->Procedure(pt);
                 ths->CaptureBP.~CaptureType();
                 new (&(ths->CaptureBP)) CaptureType(CaptureType::NullCapture);
             }

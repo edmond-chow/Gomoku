@@ -7,16 +7,23 @@
 #include "res.h"
 namespace Gomoku
 {
-    consteval std::uint32_t color(std::uint8_t r, std::uint8_t g, std::uint8_t b) { return 0xff000000 + (r << 16) + (g << 8) + b; };
-    consteval std::uint32_t color(std::uint8_t a, std::uint8_t r, std::uint8_t g, std::uint8_t b) { return (a << 24) + (r << 16) + (g << 8) + b; };
-    struct Point
+    consteval std::uint32_t color(std::uint8_t r, std::uint8_t g, std::uint8_t b)
     {
-    public:
-        const std::int32_t X;
-        const std::int32_t Y;
+        return 0xff000000 + (r << 16) + (g << 8) + b;
+    };
+    consteval std::uint32_t color(std::uint8_t a, std::uint8_t r, std::uint8_t g, std::uint8_t b)
+    {
+        return (a << 24) + (r << 16) + (g << 8) + b;
     };
     class BaseForm
     {
+    protected:
+        struct Point
+        {
+        public:
+            const std::int32_t X;
+            const std::int32_t Y;
+        };
     private:
         std::atomic<bool> disposed;
         static constexpr const std::uint8_t WinConst = 5;
@@ -244,7 +251,7 @@ namespace Gomoku
         if (Board[Nearest.getX()][Nearest.getY()] != 0) { return false; }
         return true;
     };
-    Point BaseForm::GetPoint(const BoardPosition& BP) const
+    BaseForm::Point BaseForm::GetPoint(const BoardPosition& BP) const
     {
         std::int32_t offset = static_cast<std::int32_t>(BoardOffset) + static_cast<std::int32_t>(BoardWide) / 2;
         std::int32_t scale = static_cast<std::int32_t>(BoardWide) + static_cast<std::int32_t>(ChessPadding);
@@ -460,7 +467,6 @@ namespace Gomoku
     private:
         static constexpr const UINT_PTR hMenuResetID = 1;
         HWND hWnd;
-        HMENU hMenu;
         const Gdiplus::GdiplusStartupInput gdiplusStartupInput;
         ULONG_PTR gdiplusToken;
         CaptureType CaptureBP;
@@ -480,7 +486,7 @@ namespace Gomoku
     };
     void MainForm::OnLoad()
     {
-        hMenu = CreateMenu();
+        HMENU hMenu = CreateMenu();
         AppendMenuW(hMenu, MF_STRING, hMenuResetID, ResetMenuText.data());
         WNDCLASSW wc{ 0 };
         wc.hbrBackground = (HBRUSH)GetStockObject(COLOR_WINDOW + 1);
@@ -518,6 +524,7 @@ namespace Gomoku
     };
     void MainForm::OnReset() &
     {
+        HMENU hMenu = GetMenu(hWnd);
         CaptureBP.~CaptureType();
         new (&CaptureBP) CaptureType(CaptureType::NullCapture);
         SetWindowTextW(hWnd, Title.data());
@@ -593,6 +600,7 @@ namespace Gomoku
     };
     void MainForm::HasResult(const BoardResult& BR) &
     {
+        HMENU hMenu = GetMenu(hWnd);
         EnableMenuItem(hMenu, hMenuResetID, MF_ENABLED);
         SetMenu(hWnd, hMenu);
         if (BR == BoardResult::None) { return; }
@@ -696,17 +704,17 @@ namespace Gomoku
     };
     MainForm::MainForm(const MainForm& Form) :
         BaseForm::BaseForm(Form),
-        hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
+        hWnd(), gdiplusStartupInput(), gdiplusToken(),
         CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false)
     {};
     MainForm::MainForm() :
         BaseForm::BaseForm(),
-        hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
+        hWnd(), gdiplusStartupInput(), gdiplusToken(),
         CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false)
     {};
     MainForm::MainForm(std::uint8_t BoardOffset, std::uint8_t BoardWide, std::uint8_t ChessPadding, float ChessSizeScale, float ChessTouchScale, float ChessShadowScale, float ChessMarginScale) :
         BaseForm::BaseForm(BoardOffset, BoardWide, ChessPadding, ChessSizeScale, ChessTouchScale, ChessShadowScale, ChessMarginScale),
-        hWnd(), hMenu(), gdiplusStartupInput(), gdiplusToken(),
+        hWnd(), gdiplusStartupInput(), gdiplusToken(),
         CaptureBP(BaseForm::CaptureType::NullCapture), CaptureHold(false)
     {};
 }

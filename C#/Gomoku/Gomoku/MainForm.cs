@@ -635,7 +635,7 @@ namespace Gomoku
             Size Sz = new Size(D + 1, D + 1);
             return new Rectangle(Po, Sz);
         }
-        public void PaintChess(Point Pt, bool Bk)
+        public void PaintChess(Graphics Gr, Point Pt, bool Bk)
         {
             Rectangle CRect = GetChessRect(Pt);
             Point SPo = new Point(CRect.X - Pa.ChessMargin, CRect.Y - Pa.ChessMargin);
@@ -646,55 +646,55 @@ namespace Gomoku
             PathGradientBrush PGB = new PathGradientBrush(GP);
             if (Bk)
             {
-                BoardPaint.FillEllipse(new SolidBrush(Params.BlackChessDarkColor), CRect);
+                Gr.FillEllipse(new SolidBrush(Params.BlackChessDarkColor), CRect);
                 PGB.CenterColor = Params.BlackChessLightColor;
                 PGB.SurroundColors = new Color[] { Params.BlackChessDarkColor };
-                BoardPaint.FillEllipse(PGB, CRect);
+                Gr.FillEllipse(PGB, CRect);
             }
             else
             {
-                BoardPaint.FillEllipse(new SolidBrush(Params.WhiteChessDarkColor), CRect);
+                Gr.FillEllipse(new SolidBrush(Params.WhiteChessDarkColor), CRect);
                 PGB.CenterColor = Params.WhiteChessLightColor;
                 PGB.SurroundColors = new Color[] { Params.WhiteChessDarkColor };
-                BoardPaint.FillEllipse(PGB, CRect);
+                Gr.FillEllipse(PGB, CRect);
             }
         }
-        public void PaintShadow(Point Pt)
+        public void PaintShadow(Graphics Gr, Point Pt)
         {
             Rectangle CRect = GetChessRect(Pt);
-            BoardPaint.FillEllipse(new SolidBrush(Params.ShadowColor), CRect);
+            Gr.FillEllipse(new SolidBrush(Params.ShadowColor), CRect);
         }
-        public void ClearGrid(Point Pt)
+        public void ClearGrid(Graphics Gr, Point Pt)
         {
             Rectangle CRect = GetChessRect(Pt);
-            BoardPaint.FillEllipse(new SolidBrush(Params.BoardColor), CRect);
+            Gr.FillEllipse(new SolidBrush(Params.BoardColor), CRect);
             Pen LinePen = new Pen(new SolidBrush(Params.LineColor), Pa.LineWeight);
             Point Left = new Point(Po.X == 0 ? Pt.X : CRect.Left, Pt.Y);
             Point Right = new Point(Po.X == 14 ? Pt.X : CRect.Right, Pt.Y);
             Point Top = new Point(Pt.X, Po.Y == 0 ? Pt.Y : CRect.Top);
             Point Bottom = new Point(Pt.X, Po.Y == 14 ? Pt.Y : CRect.Bottom);
-            BoardPaint.DrawLine(LinePen, Left, Right);
-            BoardPaint.DrawLine(LinePen, Top, Bottom);
+            Gr.DrawLine(LinePen, Left, Right);
+            Gr.DrawLine(LinePen, Top, Bottom);
         }
-        public void RenderClient(Graphics Paint)
+        public void RenderClient(Graphics Gr)
         {
-            Paint.Clear(Params.BoardColor);
+            Gr.Clear(Params.BoardColor);
             int Begin = Pa.BoardPadding + Pa.LineWeight / 2;
             int End = Pa.BoardPadding + Pa.BoardInnerSize - Pa.LineWeight / 2;
             int Size = Pa.BoardInnerSize - Pa.LineWeight;
             int Step = Pa.GridSize + Pa.LineWeight;
             Pen LinePen = new Pen(new SolidBrush(Params.LineColor), Pa.LineWeight);
-            Paint.DrawRectangle(LinePen, new Rectangle(new Point(Begin, Begin), new Size(Size, Size)));
+            Gr.DrawRectangle(LinePen, new Rectangle(new Point(Begin, Begin), new Size(Size, Size)));
             for (int i = 0; i < 15; ++i)
             {
                 int Adjusted = Begin + Step * i;
-                Paint.DrawLine(LinePen, new Point(Begin, Adjusted), new Point(End, Adjusted));
-                Paint.DrawLine(LinePen, new Point(Adjusted, Begin), new Point(Adjusted, End));
+                Gr.DrawLine(LinePen, new Point(Begin, Adjusted), new Point(End, Adjusted));
+                Gr.DrawLine(LinePen, new Point(Adjusted, Begin), new Point(Adjusted, End));
             }
             foreach (Position Po in Bo)
             {
-                if (Bo[Po] == Chess.Black) { PaintChess(GetPoint(Po), true); }
-                else if (Bo[Po] == Chess.White) { PaintChess(GetPoint(Po), false); }
+                if (Bo[Po] == Chess.Black) { PaintChess(Gr, GetPoint(Po), true); }
+                else if (Bo[Po] == Chess.White) { PaintChess(Gr, GetPoint(Po), false); }
             }
         }
         #endregion
@@ -804,7 +804,7 @@ namespace Gomoku
                 ReleastShadow(Pt);
                 if (CanPutChess(CurrentPo) && CanTouchChess(CurrentPo, Pt))
                 {
-                    PaintShadow(GetPoint(CurrentPo));
+                    PaintShadow(BoardPaint, GetPoint(CurrentPo));
                     Po = CurrentPo;
                 }
             }
@@ -813,7 +813,7 @@ namespace Gomoku
         {
             if (CanPutChess(Po) && !CanTouchChess(Po, Pt))
             {
-                ClearGrid(GetPoint(Po));
+                ClearGrid(BoardPaint, GetPoint(Po));
                 Po = Position.Null;
             }
         }
@@ -822,7 +822,7 @@ namespace Gomoku
             BtnReset.Enabled = true;
             if (Bo.IsBlackTurn) { Bo[Po] = Chess.Black; }
             else { Bo[Po] = Chess.White; }
-            PaintChess(GetPoint(Po), Bo.IsBlackTurn);
+            PaintChess(BoardPaint, GetPoint(Po), Bo.IsBlackTurn);
             MakeResult();
             if (Re == Result.Won) { Text = Params.Win; }
             else if (Re == Result.Lost) { Text = Params.Lost; }

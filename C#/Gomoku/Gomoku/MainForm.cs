@@ -376,26 +376,26 @@ namespace Gomoku
             }
             public struct Forbids
             {
-                public uint Po;
+                private uint Po;
                 public Position P0
                 {
-                    get { return (Position)(Po & 0xFF); }
-                    set { Po = (uint)value | (Po & 0xFFFFFF00); }
+                    get { return (Position)(Po & 0xFFu); }
+                    set { Po = (uint)value | (Po & 0xFFFFFF00u); }
                 }
                 public Position P1
                 {
-                    get { return (Position)((Po & 0xFF00) >> 8); }
-                    set { Po = ((uint)value << 8) | (Po & 0xFFFF00FF); }
+                    get { return (Position)((Po & 0xFF00u) >> 8); }
+                    set { Po = ((uint)value << 8) | (Po & 0xFFFF00FFu); }
                 }
                 public Position P2
                 {
-                    get { return (Position)((Po & 0xFF0000) >> 16); }
-                    set { Po = ((uint)value << 16) | (Po & 0xFF00FFFF); }
+                    get { return (Position)((Po & 0xFF0000u) >> 16); }
+                    set { Po = ((uint)value << 16) | (Po & 0xFF00FFFFu); }
                 }
                 public Position P3
                 {
-                    get { return (Position)((Po & 0xFF000000) >> 24); }
-                    set { Po = ((uint)value << 24) | (Po & 0xFFFFFF); }
+                    get { return (Position)((Po & 0xFF000000u) >> 24); }
+                    set { Po = ((uint)value << 24) | (Po & 0xFFFFFFu); }
                 }
                 public int this[int i]
                 {
@@ -513,7 +513,7 @@ namespace Gomoku
                 uint Result = 0;
                 for (int Shift = 0; Shift < 18; Shift += 2)
                 {
-                    uint Temp = (Li >> Shift) & 0b11;
+                    uint Temp = (Li >> Shift) & 0b11u;
                     if (Temp == (uint)Chess.None) { Temp = (uint)Player.Empty; }
                     else if (Temp == (uint)Chess.Unspecified) { Temp = (uint)Player.Unknown; }
                     else if (Bk)
@@ -528,7 +528,7 @@ namespace Gomoku
                     }
                     Result |= Temp << Shift;
                 }
-                Result |= Li & 0xC0000000;
+                Result |= Li & 0xC0000000u;
                 return Result;
             }
             public static bool Exists(uint MySide, Pack[] Cases)

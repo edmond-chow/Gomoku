@@ -26,9 +26,9 @@
  */
 using System;
 using System.Drawing;
-using System.Windows.Forms;
 using System.Drawing.Drawing2D;
 using System.Collections;
+using System.Windows.Forms;
 namespace Gomoku
 {
     public partial class MainForm : Form
@@ -265,27 +265,56 @@ namespace Gomoku
                     Grid[Po.Y] = (((uint)value & 0b11u) << Shift) | (Grid[Po.Y] & ~(0b11u << Shift));
                 }
             }
-            public struct Enumerator : IEnumerator
+            public readonly struct ChessRef
             {
+                private readonly uint[] Grid;
+                private readonly Position Po;
+                public ChessRef(uint[] Grid, Position Po)
+                {
+                    this.Grid = Grid;
+                    this.Po = Po;
+                }
+                public static implicit operator Chess(ChessRef ChessRef)
+                {
+                    if (ChessRef.Po.X == 15 || ChessRef.Po.Y == 15) { return Chess.Unspecified; }
+                    int Shift = ChessRef.Po.X * 2;
+                    return (Chess)((ChessRef.Grid[ChessRef.Po.Y] & (0b11u << Shift)) >> Shift);
+                }
+                public Position Pos
+                {
+                    get { return Po; }
+                }
+            }
+            public struct ChessIte : IEnumerator
+            {
+                private readonly uint[] Grid;
                 private int Index;
+                public ChessIte(uint[] Grid)
+                {
+                    this.Grid = Grid;
+                    Index = -1;
+                }
                 public object Current
                 {
-                    get { return new Position((Index - 1) % 15, (Index - 1) / 15); }
+                    get
+                    {
+                        return new ChessRef(Grid, new Position(Index % 15, Index / 15));
+                    }
                 }
                 public bool MoveNext()
                 {
-                    if (Index >= 225) { return false; }
+                    if (Index >= 224) { return false; }
                     ++Index;
                     return true;
                 }
                 public void Reset()
                 {
-                    Index = 0;
+                    Index = -1;
                 }
             }
             public IEnumerator GetEnumerator()
             {
-                return new Enumerator();
+                return new ChessIte(Grid);
             }
             public uint GetLine(Position Po, Orientation Or)
             {
@@ -691,10 +720,10 @@ namespace Gomoku
                 Gr.DrawLine(LinePen, new Point(Begin, Adjusted), new Point(End, Adjusted));
                 Gr.DrawLine(LinePen, new Point(Adjusted, Begin), new Point(Adjusted, End));
             }
-            foreach (Position Po in Bo)
+            foreach (Board.ChessRef Ch in Bo)
             {
-                if (Bo[Po] == Chess.Black) { PaintChess(Gr, GetPoint(Po), true); }
-                else if (Bo[Po] == Chess.White) { PaintChess(Gr, GetPoint(Po), false); }
+                if (Ch == Chess.Black) { PaintChess(Gr, GetPoint(Ch.Pos), true); }
+                else if (Ch == Chess.White) { PaintChess(Gr, GetPoint(Ch.Pos), false); }
             }
         }
         #endregion

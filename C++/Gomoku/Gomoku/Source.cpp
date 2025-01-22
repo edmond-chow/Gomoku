@@ -652,7 +652,7 @@ namespace Gomoku
                 HMENU Mu = CreateMenu();
                 AppendMenuW(Mu, MF_STRING, BtnReset, Pa->Reset);
                 WNDCLASSW Wc{ 0 };
-                Wc.hbrBackground = (HBRUSH)GetStockObject(COLOR_WINDOW + 1);
+                Wc.hbrBackground = reinterpret_cast<HBRUSH>(GetStockObject(COLOR_WINDOW + 1));
                 Wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
                 HMODULE Mo = NULL;
                 GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, L"", &Mo);
@@ -1024,8 +1024,9 @@ namespace Gomoku
                     }
                     break;
                 case WM_CREATE:
-                    SetWindowLongPtrW(wnd, GWLP_USERDATA, (LONG_PTR)(ths = (MainForm*)((LPCREATESTRUCT)lp)->lpCreateParams));
-                    Gdiplus::GdiplusStartup(&(ths->Gdiplus), &Params::StartupInput, nullptr);
+                    ths = reinterpret_cast<MainForm*>(reinterpret_cast<LPCREATESTRUCT>(lp)->lpCreateParams);
+                    SetWindowLongPtrW(wnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(ths));
+                    Gdiplus::GdiplusStartup(&ths->Gdiplus, &Params::StartupInput, nullptr);
                     ths->Window = wnd;
                     ths->NewGame();
                     break;
@@ -1133,7 +1134,6 @@ namespace Gomoku
 int WINAPI wWinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrevInst, _In_ LPWSTR args, _In_ int nCmdShow)
 {
     Gomoku::MainForm Form;
-    sizeof(Gomoku::MainForm);
     Gomoku::MainForm::Run(Form);
     return 0;
 };

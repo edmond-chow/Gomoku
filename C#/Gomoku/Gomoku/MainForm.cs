@@ -633,14 +633,14 @@ namespace Gomoku
             int Y = Begin + Step * Po.Y;
             return new Point(X, Y);
         }
-        private int GetRadius(Position Po, Point Pt)
+        private double GetRadius(Position Po, Point Pt)
         {
             Point PoPt = GetPoint(Po);
             int SqX = PoPt.X - Pt.X;
             int SqY = PoPt.Y - Pt.Y;
             SqX *= SqX;
             SqY *= SqY;
-            return (int)Math.Floor(Math.Sqrt(SqX + SqY));
+            return Math.Sqrt(SqX + SqY);
         }
         private bool CanPutChess(Position Po)
         {
@@ -652,23 +652,26 @@ namespace Gomoku
         }
         private bool CanTouchChess(Position Po, Point Pt)
         {
-            return GetRadius(Po, Pt) <= Pa.ChessTouch / 2;
+            int CTou = Pa.ChessTouch;
+            return GetRadius(Po, Pt) <= CTou / 2d;
         }
         #endregion
         #region illustrators
         private Rectangle GetChessRect(Point Pt)
         {
-            int D = Pa.ChessSize;
-            if (D % 2 != Pa.LineWeight % 2) { ++D; }
-            Point Po = new Point(Pt.X - D / 2 - 1, Pt.Y - D / 2 - 1);
-            Size Sz = new Size(D + 1, D + 1);
+            int CSiz = Pa.ChessSize;
+            if (CSiz % 2 != Pa.LineWeight % 2) { ++CSiz; }
+            Point Po = new Point(Pt.X - CSiz / 2 - 1, Pt.Y - CSiz / 2 - 1);
+            Size Sz = new Size(CSiz + 1, CSiz + 1);
             return new Rectangle(Po, Sz);
         }
         public void PaintChess(Graphics Gr, Point Pt, bool Bk)
         {
+            int CMar = Pa.ChessMargin;
+            int CSha = Pa.ChessShadow;
             Rectangle CRect = GetChessRect(Pt);
-            Point SPo = new Point(CRect.X - Pa.ChessMargin, CRect.Y - Pa.ChessMargin);
-            Size SSz = new Size(Pa.ChessShadow, Pa.ChessShadow);
+            Point SPo = new Point(CRect.X - CMar, CRect.Y - CMar);
+            Size SSz = new Size(CSha, CSha);
             Rectangle SRect = new Rectangle(SPo, SSz);
             GraphicsPath GP = new GraphicsPath();
             GP.AddEllipse(SRect);
@@ -827,15 +830,12 @@ namespace Gomoku
         #region infrastructures
         private void SetShadow(Point Pt)
         {
+            ReleastShadow(Pt);
             Position CurrentPo = GetNearPos(Pt);
-            if (CurrentPo != Po)
+            if (CurrentPo != Po && CanPutChess(CurrentPo) && CanTouchChess(CurrentPo, Pt))
             {
-                ReleastShadow(Pt);
-                if (CanPutChess(CurrentPo) && CanTouchChess(CurrentPo, Pt))
-                {
-                    PaintShadow(BoardPaint, GetPoint(CurrentPo));
-                    Po = CurrentPo;
-                }
+                PaintShadow(BoardPaint, GetPoint(CurrentPo));
+                Po = CurrentPo;
             }
         }
         private void ReleastShadow(Point Pt)
@@ -877,7 +877,6 @@ namespace Gomoku
             Position CurrentPo = GetNearPos(e.Location);
             if (CurrentPo == Po && CanPutChess(CurrentPo) && CanTouchChess(CurrentPo, e.Location))
             {
-                ReleastShadow(e.Location);
                 PutChess();
             }
             Dragging = false;

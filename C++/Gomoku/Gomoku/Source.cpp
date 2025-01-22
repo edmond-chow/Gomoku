@@ -725,14 +725,14 @@ namespace Gomoku
                 int Y = Begin + Step * PoY;
                 return Gdiplus::Point{ X, Y };
             };
-            int GetRadius(Position Po, const Gdiplus::Point& Pt) const&
+            double GetRadius(Position Po, const Gdiplus::Point& Pt) const&
             {
                 Gdiplus::Point PoPt = GetPoint(Po);
                 int SqX = PoPt.X - Pt.X;
                 int SqY = PoPt.Y - Pt.Y;
                 SqX *= SqX;
                 SqY *= SqY;
-                return static_cast<int>(std::floor(std::sqrt(SqX + SqY)));
+                return std::sqrt(SqX + SqY);
             };
             bool CanPutChess(Position Po) const&
             {
@@ -746,26 +746,27 @@ namespace Gomoku
             };
             bool CanTouchChess(Position Po, const Gdiplus::Point& Pt) const&
             {
-                return GetRadius(Po, Pt) <= Pa->ChessTouch() / 2;
+                int CTou = Pa->ChessTouch();
+                return GetRadius(Po, Pt) <= CTou / 2e0;
             };
 #pragma endregion
 #pragma region illustrators
         private:
             Gdiplus::Rect GetChessRect(const Gdiplus::Point& Pt) const&
             {
-                int D = Pa->ChessSize();
-                if (D % 2 != Pa->LineWeight() % 2) { ++D; }
-                Gdiplus::Point Po{ Pt.X - D / 2 - 1, Pt.Y - D / 2 - 1 };
-                Gdiplus::Size Sz{ D + 1, D + 1 };
+                int CSiz = Pa->ChessSize();
+                if (CSiz % 2 != Pa->LineWeight() % 2) { ++CSiz; }
+                Gdiplus::Point Po{ Pt.X - CSiz / 2 - 1, Pt.Y - CSiz / 2 - 1 };
+                Gdiplus::Size Sz{ CSiz + 1, CSiz + 1 };
                 return Gdiplus::Rect{ Po, Sz };
             };
             void PaintChess(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt, bool Bk) const&
             {
+                int CMar = Pa->ChessMargin();
+                int CSha = Pa->ChessShadow();
                 Gdiplus::Rect CRect = GetChessRect(Pt);
-                int M = Pa->ChessMargin();
-                int S = Pa->ChessShadow();
-                Gdiplus::Point SPo{ CRect.X - M, CRect.Y - M };
-                Gdiplus::Size SSz{ S, S };
+                Gdiplus::Point SPo{ CRect.X - CMar, CRect.Y - CMar };
+                Gdiplus::Size SSz{ CSha, CSha };
                 Gdiplus::Rect SRect{ SPo, SSz };
                 Gdiplus::GraphicsPath GP{};
                 GP.AddEllipse(SRect);
@@ -944,16 +945,13 @@ namespace Gomoku
         private:
             void SetShadow(const Gdiplus::Point& Pt) &
             {
+                ReleastShadow(Pt);
                 Position CurrentPo = GetNearPos(Pt);
-                if (CurrentPo != Po)
+                if (CurrentPo != Po && CanPutChess(CurrentPo) && CanTouchChess(CurrentPo, Pt))
                 {
-                    ReleastShadow(Pt);
-                    if (CanPutChess(CurrentPo) && CanTouchChess(CurrentPo, Pt))
-                    {
-                        Gdiplus::Graphics BoardPaint{ Window };
-                        PaintShadow(BoardPaint, GetPoint(CurrentPo));
-                        Po = CurrentPo;
-                    }
+                    Gdiplus::Graphics BoardPaint{ Window };
+                    PaintShadow(BoardPaint, GetPoint(CurrentPo));
+                    Po = CurrentPo;
                 }
             };
             void ReleastShadow(const Gdiplus::Point& Pt) &
@@ -1008,7 +1006,6 @@ namespace Gomoku
                         Position CurrentPo = ths->GetNearPos(Pt);
                         if (CurrentPo == ths->Po && ths->CanPutChess(CurrentPo) && ths->CanTouchChess(CurrentPo, Pt))
                         {
-                            ths->ReleastShadow(Pt);
                             ths->PutChess();
                         }
                         ths->Dragging = false;

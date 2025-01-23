@@ -145,8 +145,8 @@ namespace Gomoku
             }
             private int GsScaleToLw(float C)
             {
-                int Result = (int)Math.Floor(Gs * C);
-                return Lw % 2 == Result % 2 ? Result : Result - 1;
+                int Result = (int)(Gs * C);
+                return Lw % 2 == Result % 2 ? Result : Result + 1;
             }
             public int ChessSize
             {

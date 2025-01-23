@@ -91,8 +91,7 @@
     <ApplicationIcon>TicTacToe.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>
-    </StartupObject>
+    <StartupObject>Gomoku.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />

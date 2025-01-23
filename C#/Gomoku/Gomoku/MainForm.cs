@@ -57,13 +57,16 @@ namespace Gomoku
             public static readonly Color WhiteChessDarkColor;
             static Params()
             {
-                BoardColor = Color.Wheat;
-                LineColor = Color.BurlyWood;
-                ShadowColor = Color.FromArgb(16, 0, 0, 0);
-                BlackChessLightColor = SystemColors.ControlDark;
-                BlackChessDarkColor = Color.Black;
-                WhiteChessLightColor = Color.White;
-                WhiteChessDarkColor = SystemColors.Control;
+                unchecked
+                {
+                    BoardColor = Color.FromArgb((int)0xFFF5DEB3u);
+                    LineColor = Color.FromArgb((int)0xFFDEB887u);
+                    ShadowColor = Color.FromArgb((int)0x10000000u);
+                    BlackChessLightColor = Color.FromArgb((int)0xFFA0A0A0u);
+                    BlackChessDarkColor = Color.FromArgb((int)0xFF000000u);
+                    WhiteChessLightColor = Color.FromArgb((int)0xFFFFFFFFu);
+                    WhiteChessDarkColor = Color.FromArgb((int)0xFFF0F0F0u);
+                }
             }
             private int Bp;
             private int Lw;

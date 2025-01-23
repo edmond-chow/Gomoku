@@ -69,38 +69,38 @@ namespace Gomoku
             float CSha;
             float CMar;
         public:
-            int BoardPadding() const&
+            constexpr int BoardPadding() const &
             {
                 return Bp;
             };
-            int LineWeight() const&
+            constexpr int LineWeight() const &
             {
                 return Lw;
             };
-            int GridSize() const&
+            constexpr int GridSize() const &
             {
                 return Gs;
             };
-            float ChessSizeScale() const&
+            constexpr float ChessSizeScale() const &
             {
                 return CSiz;
             };
-            float ChessTouchScale() const&
+            constexpr float ChessTouchScale() const &
             {
                 return CTou;
             };
-            float ChessShadowScale() const&
+            constexpr float ChessShadowScale() const &
             {
                 return CSha;
             };
-            float ChessMarginScale() const&
+            constexpr float ChessMarginScale() const &
             {
                 return CMar;
             };
             constexpr Params()
                 : Bp{ DefBp }, Lw{ DefLw }, Gs{ DefGs }, CSiz{ DefCSiz }, CTou{ DefCTou }, CSha{ DefCSha }, CMar{ DefCMar }
             {};
-            bool SetParams(int BoardPadding, int LineWeight, int GridSize) &
+            constexpr bool SetParams(int BoardPadding, int LineWeight, int GridSize) &
             {
                 if (LineWeight >= GridSize) { return false; }
                 else if (GridSize >= BoardPadding) { return false; }
@@ -110,7 +110,7 @@ namespace Gomoku
                 Gs = GridSize;
                 return true;
             };
-            bool SetScales(float ChessSizeScale, float ChessTouchScale, float ChessShadowScale, float ChessMarginScale) &
+            constexpr bool SetScales(float ChessSizeScale, float ChessTouchScale, float ChessShadowScale, float ChessMarginScale) &
             {
                 if (ChessSizeScale <= 0 || ChessSizeScale > 1) { return false; }
                 else if (ChessTouchScale <= 0 || ChessTouchScale > 1) { return false; }
@@ -122,32 +122,32 @@ namespace Gomoku
                 CMar = ChessMarginScale;
                 return true;
             };
-            int BoardOuterSize() const&
+            constexpr int BoardOuterSize() const &
             {
                 return Bp * 2 + Lw * 15 + Gs * 14;
             };
-            int BoardInnerSize() const&
+            constexpr int BoardInnerSize() const &
             {
                 return Lw * 15 + Gs * 14;
             };
-            int GsScaleToLw(float C) const&
+            constexpr int GsScaleToLw(float C) const &
             {
-                int Result = (int)std::floor(Gs * C);
-                return Lw % 2 == Result % 2 ? Result : Result - 1;
+                int Result = static_cast<int>(Gs * C);
+                return Lw % 2 == Result % 2 ? Result : Result + 1;
             };
-            int ChessSize() const&
+            constexpr int ChessSize() const &
             {
                 return GsScaleToLw(CSiz);
             };
-            int ChessTouch() const&
+            constexpr int ChessTouch() const &
             {
                 return GsScaleToLw(CTou);
             };
-            int ChessShadow() const&
+            constexpr int ChessShadow() const &
             {
                 return GsScaleToLw(CSha);
             };
-            int ChessMargin() const&
+            constexpr int ChessMargin() const &
             {
                 return GsScaleToLw(CMar);
             };
@@ -160,23 +160,23 @@ namespace Gomoku
         private:
             std::uint8_t Coord;
         public:
-            int X() const&
+            constexpr int X() const &
             {
                 return Coord & 0xF;
             };
-            void X(int value) &
+            constexpr void X(int value) &
             {
                 Coord = static_cast<std::uint8_t>((value & 0xF) | (Coord & 0xF0));
             };
-            int Y() const&
+            constexpr int Y() const &
             {
                 return Coord >> 4;
             };
-            void Y(int value) &
+            constexpr void Y(int value) &
             {
                 Coord = static_cast<std::uint8_t>(((value & 0xF) << 4) | (Coord & 0xF));
             };
-            explicit constexpr Position(std::uint8_t B)
+            constexpr explicit Position(std::uint8_t B)
                 : Coord{ B }
             {};
             constexpr Position(int X, int Y)
@@ -198,11 +198,11 @@ namespace Gomoku
             {
                 return Coord;
             };
-            friend static bool operator ==(Position L, Position R)
+            friend static constexpr bool operator ==(Position L, Position R)
             {
                 return L.Coord == R.Coord;
             };
-            friend static bool operator !=(Position L, Position R)
+            friend static constexpr bool operator !=(Position L, Position R)
             {
                 return L.Coord != R.Coord;
             };
@@ -249,7 +249,7 @@ namespace Gomoku
                     : Grid{ Grid }, Po{ Po }
                 {};
             public:
-                operator Chess() const
+                constexpr operator Chess() const
                 {
                     int PoX = Po.X();
                     int PoY = Po.Y();
@@ -257,7 +257,7 @@ namespace Gomoku
                     int Shift = PoX * 2;
                     return static_cast<Chess>((Grid[PoY] & (0b11u << Shift)) >> Shift);
                 };
-                Position Pos() const
+                constexpr Position Pos() const
                 {
                     return Po;
                 };
@@ -273,11 +273,11 @@ namespace Gomoku
                     : Grid{ Grid }, Po{ Po }
                 {};
             public:
-                operator ChessCRef()
+                constexpr operator ChessCRef()
                 {
                     return ChessCRef{ Grid, Po };
                 };
-                operator Chess() const
+                constexpr operator Chess() const
                 {
                     int PoX = Po.X();
                     int PoY = Po.Y();
@@ -285,7 +285,7 @@ namespace Gomoku
                     int Shift = PoX * 2;
                     return static_cast<Chess>((Grid[PoY] & (0b11u << Shift)) >> Shift);
                 };
-                void operator =(Chess value) const
+                constexpr void operator =(Chess value) const
                 {
                     int PoX = Po.X();
                     int PoY = Po.Y();
@@ -293,7 +293,7 @@ namespace Gomoku
                     int Shift = PoX * 2;
                     Grid[PoY] = ((static_cast<std::uint32_t>(value) & 0b11u) << Shift) | (Grid[PoY] & ~(0b11u << Shift));
                 };
-                Position Pos() const
+                constexpr Position Pos() const
                 {
                     return Po;
                 };
@@ -309,26 +309,26 @@ namespace Gomoku
                     : Grid{ Grid }, Index{ Index }
                 {};
             public:
-                ChessCIte& operator ++()
+                constexpr ChessCIte& operator ++()
                 {
                     ++Index;
                     return *this;
                 };
-                ChessCIte operator ++(int)
+                constexpr ChessCIte operator ++(int)
                 {
                     ChessCIte Result = *this;
                     ++Index;
                     return Result;
                 };
-                ChessCRef operator *() const
+                constexpr ChessCRef operator *() const
                 {
                     return ChessCRef{ Grid, Position{ Index % 15, Index / 15 } };
                 };
-                friend static bool operator ==(const ChessCIte& L, const ChessCIte& R)
+                friend static constexpr bool operator ==(const ChessCIte& L, const ChessCIte& R)
                 {
                     return L.Grid == R.Grid && L.Index == R.Index;
                 };
-                friend static bool operator !=(const ChessCIte& L, const ChessCIte& R)
+                friend static constexpr bool operator !=(const ChessCIte& L, const ChessCIte& R)
                 {
                     return L.Grid != R.Grid || L.Index != R.Index;
                 };
@@ -344,30 +344,30 @@ namespace Gomoku
                     : Grid{ Grid }, Index{ Index }
                 {};
             public:
-                operator ChessCIte() const
+                constexpr operator ChessCIte() const
                 {
                     return ChessCIte{ Grid, Index };
                 };
-                ChessIte& operator ++()
+                constexpr ChessIte& operator ++()
                 {
                     ++Index;
                     return *this;
                 };
-                ChessIte operator ++(int)
+                constexpr ChessIte operator ++(int)
                 {
                     ChessIte Result = *this;
                     ++Index;
                     return Result;
                 };
-                ChessRef operator *() const
+                constexpr ChessRef operator *() const
                 {
                     return ChessRef{ Grid, Position{ Index % 15, Index / 15 } };
                 };
-                friend static bool operator ==(const ChessIte& L, const ChessIte& R)
+                friend static constexpr bool operator ==(const ChessIte& L, const ChessIte& R)
                 {
                     return L.Grid == R.Grid && L.Index == R.Index;
                 };
-                friend static bool operator !=(const ChessIte& L, const ChessIte& R)
+                friend static constexpr bool operator !=(const ChessIte& L, const ChessIte& R)
                 {
                     return L.Grid != R.Grid || L.Index != R.Index;
                 };
@@ -376,36 +376,36 @@ namespace Gomoku
             std::uint32_t Grid[15];
             std::uint8_t Round;
         public:
-            void Reset() &
+            constexpr void Reset() &
             {
                 for (std::uint32_t& Li : Grid) { Li = 0; }
                 Round = 0;
             };
-            ChessCRef operator[](Position Po) const&
+            constexpr ChessCRef operator[](Position Po) const &
             {
                 return ChessCRef{ Grid, Po };
             };
-            ChessRef operator[](Position Po) &
+            constexpr ChessRef operator[](Position Po) &
             {
                 return ChessRef{ Grid, Po };
             };
-            ChessCIte begin() const&
+            constexpr ChessCIte begin() const &
             {
                 return ChessCIte{ Grid, 0 };
             };
-            ChessIte begin() &
+            constexpr ChessIte begin() &
             {
                 return ChessIte{ Grid, 0 };
             };
-            ChessCIte end() const&
+            constexpr ChessCIte end() const &
             {
                 return ChessCIte{ Grid, 225 };
             };
-            ChessIte end() &
+            constexpr ChessIte end() &
             {
                 return ChessIte{ Grid, 225 };
             };
-            std::uint32_t GetLine(Position Po, Orientation Or) const&
+            constexpr std::uint32_t GetLine(Position Po, Orientation Or) const &
             {
                 std::uint32_t Result = 0u;
                 int PoX = Po.X();
@@ -450,21 +450,21 @@ namespace Gomoku
                 Result |= 0x3FFC0000u;
                 return Result;
             };
-            Board& operator ++()
+            constexpr Board& operator ++()
             {
                 if (Round < 225) { ++Round; }
                 return *this;
             };
-            Board& operator ++(int) = delete;
-            bool IsBlackTurn() const&
+            constexpr Board& operator ++(int) = delete;
+            constexpr bool IsBlackTurn() const &
             {
                 return Round % 2 == 0;
             };
-            bool IsPending() const&
+            constexpr bool IsPending() const &
             {
                 return Round == 0;
             };
-            bool IsEnded() const&
+            constexpr bool IsEnded() const &
             {
                 return Round == 225;
             };
@@ -504,21 +504,21 @@ namespace Gomoku
                     constexpr explicit NibbleRef(std::uint32_t* Po, int i)
                         : Po{ Po }, i{ i }
                     {};
-                    operator int() const
+                    constexpr operator int() const
                     {
                         int Shift = i * 4;
                         return static_cast<int>((*Po & (0xFu << Shift)) >> Shift);
                     };
-                    void operator =(int value) const
+                    constexpr void operator =(int value) const
                     {
                         int Shift = i * 4;
                         *Po = ((static_cast<std::uint32_t>(value) & 0xFu) << Shift) | (*Po & ~(0xFu << Shift));
                     };
-                    void operator +=(int value) const
+                    constexpr void operator +=(int value) const
                     {
                         operator =(operator int() + value);
                     };
-                    void operator -=(int value) const
+                    constexpr void operator -=(int value) const
                     {
                         operator =(operator int() - value);
                     };
@@ -526,43 +526,43 @@ namespace Gomoku
             private:
                 std::uint32_t Po;
             public:
-                Position P0() const&
+                constexpr Position P0() const &
                 {
                     return static_cast<Position>(Po & 0xFFu);
                 };
-                void P0(Position value) &
+                constexpr void P0(Position value) &
                 {
                     Po = static_cast<std::uint32_t>(value) | (Po & 0xFFFFFF00u);
                 };
-                Position P1() const&
+                constexpr Position P1() const &
                 {
                     return static_cast<Position>((Po & 0xFF00u) >> 8);
                 };
-                void P1(Position value) &
+                constexpr void P1(Position value) &
                 {
                     Po = (static_cast<std::uint32_t>(value) << 8) | (Po & 0xFFFF00FFu);
                 };
-                Position P2() const&
+                constexpr Position P2() const &
                 {
                     return static_cast<Position>((Po & 0xFF0000u) >> 16);
                 };
-                void P2(Position value) &
+                constexpr void P2(Position value) &
                 {
                     Po = (static_cast<std::uint32_t>(value) << 16) | (Po & 0xFF00FFFFu);
                 };
-                Position P3() const&
+                constexpr Position P3() const &
                 {
                     return static_cast<Position>((Po & 0xFF000000u) >> 24);
                 };
-                void P3(Position value) &
+                constexpr void P3(Position value) &
                 {
                     Po = (static_cast<std::uint32_t>(value) << 24) | (Po & 0xFFFFFFu);
                 };
-                NibbleRef operator[](int i) &
+                constexpr NibbleRef operator[](int i) &
                 {
                     return NibbleRef{ &Po, i };
                 };
-                int operator[](int i) const&
+                constexpr int operator[](int i) const &
                 {
                     int Shift = i * 4;
                     return static_cast<int>((Po & (0xFu << Shift)) >> Shift);
@@ -585,7 +585,7 @@ namespace Gomoku
             constexpr Counter(Position CurrentPo)
                 : Po{ CurrentPo }, C3{ 0u }, C4{ 0u }, C5{ 0u }, C6{ 0u }
             {};
-            static std::uint32_t MySide(std::uint32_t Li, bool Bk)
+            static constexpr std::uint32_t MySide(std::uint32_t Li, bool Bk)
             {
                 std::uint32_t Result = 0;
                 for (int Shift = 0; Shift < 18; Shift += 2)
@@ -609,7 +609,7 @@ namespace Gomoku
                 return Result;
             };
             template <std::size_t N>
-            static bool Exists(std::uint32_t MySide, const Pack(&Cases)[N])
+            static constexpr bool Exists(std::uint32_t MySide, const Pack(&Cases)[N])
             {
                 for (Pack P : Cases)
                 {
@@ -696,7 +696,7 @@ namespace Gomoku
                 SetMenu(Window, Mu);
                 Dragging = false;
             };
-            Position GetNearPos(const Gdiplus::Point& Pt) const&
+            Position GetNearPos(const Gdiplus::Point& Pt) const &
             {
                 int Inner = Pa->BoardInnerSize();
                 int Bp = Pa->BoardPadding();
@@ -712,7 +712,7 @@ namespace Gomoku
                 if (X < 0 || X > 14 || Y < 0 || Y > 14) { return Position::Null; }
                 return Position{ X, Y };
             };
-            Gdiplus::Point GetPoint(Position Po) const&
+            Gdiplus::Point GetPoint(Position Po) const &
             {
                 int Bp = Pa->BoardPadding();
                 int Lw = Pa->LineWeight();
@@ -725,7 +725,7 @@ namespace Gomoku
                 int Y = Begin + Step * PoY;
                 return Gdiplus::Point{ X, Y };
             };
-            double GetRadius(Position Po, const Gdiplus::Point& Pt) const&
+            double GetRadius(Position Po, const Gdiplus::Point& Pt) const &
             {
                 Gdiplus::Point PoPt = GetPoint(Po);
                 int SqX = PoPt.X - Pt.X;
@@ -734,7 +734,7 @@ namespace Gomoku
                 SqY *= SqY;
                 return std::sqrt(SqX + SqY);
             };
-            bool CanPutChess(Position Po) const&
+            bool CanPutChess(Position Po) const &
             {
                 if (Po == Position::Null) { return false; }
                 if (Re != Result::None) { return false; }
@@ -744,7 +744,7 @@ namespace Gomoku
                 if (Bo.IsPending() && !(PoX == 7 && PoY == 7)) { return false; }
                 return Bo[Po] == Chess::None;
             };
-            bool CanTouchChess(Position Po, const Gdiplus::Point& Pt) const&
+            bool CanTouchChess(Position Po, const Gdiplus::Point& Pt) const &
             {
                 int CTou = Pa->ChessTouch();
                 return GetRadius(Po, Pt) <= CTou / 2e0;
@@ -752,7 +752,7 @@ namespace Gomoku
 #pragma endregion
 #pragma region illustrators
         private:
-            Gdiplus::Rect GetChessRect(const Gdiplus::Point& Pt) const&
+            Gdiplus::Rect GetChessRect(const Gdiplus::Point& Pt) const &
             {
                 int CSiz = Pa->ChessSize();
                 if (CSiz % 2 != Pa->LineWeight() % 2) { ++CSiz; }
@@ -760,7 +760,7 @@ namespace Gomoku
                 Gdiplus::Size Sz{ CSiz + 1, CSiz + 1 };
                 return Gdiplus::Rect{ Po, Sz };
             };
-            void PaintChess(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt, bool Bk) const&
+            void PaintChess(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt, bool Bk) const &
             {
                 int CMar = Pa->ChessMargin();
                 int CSha = Pa->ChessShadow();
@@ -792,13 +792,13 @@ namespace Gomoku
                     Gr.FillEllipse(&PGB, CRect);
                 }
             };
-            void PaintShadow(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt) const&
+            void PaintShadow(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt) const &
             {
                 Gdiplus::Rect CRect = GetChessRect(Pt);
                 Gdiplus::SolidBrush ShadowBrush{ Params::ShadowColor };
                 Gr.FillEllipse(&ShadowBrush, CRect);
             };
-            void ClearGrid(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt) const&
+            void ClearGrid(Gdiplus::Graphics& Gr, const Gdiplus::Point& Pt) const &
             {
                 Gdiplus::Rect CRect = GetChessRect(Pt);
                 Gdiplus::SolidBrush BoardBrush{ Params::BoardColor };
@@ -814,7 +814,7 @@ namespace Gomoku
                 Gr.DrawLine(&LinePen, Left, Right);
                 Gr.DrawLine(&LinePen, Top, Bottom);
             };
-            void RenderClient(Gdiplus::Graphics& Gr) const&
+            void RenderClient(Gdiplus::Graphics& Gr) const &
             {
                 Gr.Clear(Params::BoardColor);
                 int Inner = Pa->BoardInnerSize();
@@ -842,7 +842,7 @@ namespace Gomoku
 #pragma endregion
 #pragma region referees
         private:
-            Counter::Forbids FindForbidPos(std::uint32_t MySide, Position Po) const&
+            Counter::Forbids FindForbidPos(std::uint32_t MySide, Position Po) const &
             {
                 Orientation Or = static_cast<Orientation>(MySide >> 30);
                 Counter::Forbids Fo = Counter::Forbids{ Po };

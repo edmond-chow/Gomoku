@@ -88,7 +88,7 @@ BEGIN
         BLOCK "000004b0"
         BEGIN
             VALUE "Comments", "Gomoku"
-            VALUE "FileDescription", "Five in a row!"
+            VALUE "FileDescription", "Gomoku"
             VALUE "FileVersion", "0.0.0.0"
             VALUE "InternalName", "Gomoku.exe"
             VALUE "LegalCopyright", "Edmond Chow"

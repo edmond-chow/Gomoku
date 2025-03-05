@@ -907,10 +907,7 @@ namespace Gomoku
                     {
                         if (!(S3Forbid(Fo.P1()) || S3Forbid(Fo.P2()) || S3Forbid(Fo.P3()))) { ++Co.C3; }
                     }
-                    else
-                    {
-                        if (!((S3Forbid(P0) || S3Forbid(Fo.P1())) && (S3Forbid(Fo.P2()) || S3Forbid(Fo.P3())))) { ++Co.C3; }
-                    }
+                    else if (!(S3Forbid(P0) || S3Forbid(Fo.P1())) || !(S3Forbid(Fo.P2()) || S3Forbid(Fo.P3()))) { ++Co.C3; }
                 }
             };
             bool S3Forbid(Position Po) &

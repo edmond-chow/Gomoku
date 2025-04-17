@@ -165,19 +165,63 @@ namespace Gomoku
                 get { return GsScaleToLw(CMar); }
             }
         }
+        private enum Result : uint
+        {
+            None = 0u,
+            Won = 1u,
+            Lost = 2u,
+            Tied = 3u,
+        }
+        private enum Chess : uint
+        {
+            None = 0u,
+            Black = 1u,
+            White = 2u,
+            Unspecified = 3u,
+        }
+        private enum Player : uint
+        {
+            Unknown = 0u,
+            Attacker = 1u,
+            Defender = 2u,
+            Empty = 3u,
+        }
+        private enum Orientation : uint
+        {
+            Horizontal = 0u,
+            Vertical = 1u,
+            Downward = 2u,
+            Upward = 3u,
+        }
         private struct Position
         {
+            private const uint Whole = 0xFFu;
+            private const uint Box = 0xFu;
             public static readonly Position Null;
-            private byte Coord;
+            private uint Coord;
             public int X
             {
-                get { return Coord & 0xF; }
-                set { Coord = (byte)((value & 0xF) | (Coord & 0xF0)); }
+                get
+                {
+                    return (int)(Coord & Box);
+                }
+                set
+                {
+                    Coord &= ~Box;
+                    Coord |= (uint)value & Box;
+                }
             }
             public int Y
             {
-                get { return Coord >> 4; }
-                set { Coord = (byte)(((value & 0xF) << 4) | (Coord & 0xF)); }
+                get
+                {
+                    return (int)((Coord >> 4) & Box);
+                }
+                set
+                {
+                    Coord &= ~(Box << 4);
+                    Coord |= ((uint)value & Box) << 4;
+                }
             }
             static Position()
             {
@@ -193,7 +237,7 @@ namespace Gomoku
             }
             public static explicit operator byte(Position Po)
             {
-                return Po.Coord;
+                return (byte)(Po.Coord & Whole);
             }
             public static explicit operator Position(byte B)
             {
@@ -215,34 +259,6 @@ namespace Gomoku
             {
                 return base.GetHashCode();
             }
-        }
-        private enum Result
-        {
-            None = 0,
-            Won = 1,
-            Lost = 2,
-            Tied = 3,
-        }
-        private enum Chess
-        {
-            None = 0,
-            Black = 1,
-            White = 2,
-            Unspecified = 3,
-        }
-        private enum Player
-        {
-            Unknown = 0,
-            Attacker = 1,
-            Defender = 2,
-            Empty = 3,
-        }
-        private enum Orientation
-        {
-            Horizontal = 0,
-            Vertical = 1,
-            Downward = 2,
-            Upward = 3,
         }
         private struct Board : IEnumerable
         {
@@ -408,26 +424,55 @@ namespace Gomoku
             }
             public struct Forbids
             {
+                private const uint Box = 0xFFu;
                 private uint Po;
                 public Position P0
                 {
-                    get { return (Position)(Po & 0xFFu); }
-                    set { Po = (uint)value | (Po & 0xFFFFFF00u); }
+                    get
+                    {
+                        return (Position)(Po & Box);
+                    }
+                    set
+                    {
+                        Po &= ~Box;
+                        Po |= (uint)value;
+                    }
                 }
                 public Position P1
                 {
-                    get { return (Position)((Po & 0xFF00u) >> 8); }
-                    set { Po = ((uint)value << 8) | (Po & 0xFFFF00FFu); }
+                    get
+                    {
+                        return (Position)((Po >> 8) & Box);
+                    }
+                    set
+                    {
+                        Po &= ~(Box << 8);
+                        Po |= (uint)value << 8;
+                    }
                 }
                 public Position P2
                 {
-                    get { return (Position)((Po & 0xFF0000u) >> 16); }
-                    set { Po = ((uint)value << 16) | (Po & 0xFF00FFFFu); }
+                    get
+                    {
+                        return (Position)((Po >> 16) & Box);
+                    }
+                    set
+                    {
+                        Po &= ~(Box << 16);
+                        Po |= (uint)value << 16;
+                    }
                 }
                 public Position P3
                 {
-                    get { return (Position)((Po & 0xFF000000u) >> 24); }
-                    set { Po = ((uint)value << 24) | (Po & 0xFFFFFFu); }
+                    get
+                    {
+                        return (Position)((Po >> 24) & Box);
+                    }
+                    set
+                    {
+                        Po &= ~(Box << 24);
+                        Po |= (uint)value << 24;
+                    }
                 }
                 public int this[int i]
                 {

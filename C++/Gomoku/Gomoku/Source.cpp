@@ -153,50 +153,86 @@ namespace Gomoku
             };
         };
     private:
+        enum struct Result : std::uint32_t
+        {
+            None = 0u,
+            Won = 1u,
+            Lost = 2u,
+            Tied = 3u,
+        };
+        enum struct Chess : std::uint32_t
+        {
+            None = 0u,
+            Black = 1u,
+            White = 2u,
+            Unspecified = 3u,
+        };
+        enum struct Player : std::uint32_t
+        {
+            Unknown = 0u,
+            Attacker = 1u,
+            Defender = 2u,
+            Empty = 3u,
+        };
+        enum struct Orientation : std::uint32_t
+        {
+            Horizontal = 0u,
+            Vertical = 1u,
+            Downward = 2u,
+            Upward = 3u,
+        };
         struct Position
         {
+        private:
+            static constexpr const std::uint32_t Whole = 0xFFu;
+            static constexpr const std::uint32_t Box = 0xFu;
         public:
             static const Position Null;
         private:
-            std::uint8_t Coord;
+            std::uint32_t Coord;
         public:
             constexpr int X() const &
             {
-                return Coord & 0xF;
+                return static_cast<int>(Coord & Box);
             };
             constexpr void X(int value) &
             {
-                Coord = static_cast<std::uint8_t>((value & 0xF) | (Coord & 0xF0));
+                Coord &= ~Box;
+                Coord |= static_cast<std::uint32_t>(value) & Box;
             };
             constexpr int Y() const &
             {
-                return Coord >> 4;
+                return static_cast<int>((Coord >> 4) & Box);
             };
             constexpr void Y(int value) &
             {
-                Coord = static_cast<std::uint8_t>(((value & 0xF) << 4) | (Coord & 0xF));
+                Coord &= ~(Box << 4);
+                Coord |= (static_cast<std::uint32_t>(value) & Box) << 4;
             };
             constexpr explicit Position(std::uint8_t B)
                 : Coord{ B }
             {};
             constexpr Position(int X, int Y)
-                : Coord{ static_cast<std::uint8_t>((X & 0xF) | ((Y & 0xF) << 4)) }
-            {};
+                : Coord{ 0u }
+            {
+				this->X(X);
+                this->Y(Y);
+            };
             constexpr explicit operator std::uint8_t()
             {
-                return Coord;
+                return static_cast<std::uint8_t>(Coord & Whole);
             };
             constexpr explicit operator std::uint16_t()
             {
-                return Coord;
+                return static_cast<std::uint16_t>(Coord & Whole);
             };
             constexpr explicit operator std::uint32_t()
             {
-                return Coord;
+                return static_cast<std::uint32_t>(Coord & Whole);
             };
             constexpr explicit operator std::uint64_t()
             {
-                return Coord;
+                return static_cast<std::uint64_t>(Coord & Whole);
             };
             friend static constexpr bool operator ==(Position L, Position R)
             {
@@ -206,34 +242,6 @@ namespace Gomoku
             {
                 return L.Coord != R.Coord;
             };
-        };
-        enum struct Result : std::uint32_t
-        {
-            None = 0,
-            Won = 1,
-            Lost = 2,
-            Tied = 3,
-        };
-        enum struct Chess : std::uint32_t
-        {
-            None = 0,
-            Black = 1,
-            White = 2,
-            Unspecified = 3,
-        };
-        enum struct Player : std::uint32_t
-        {
-            Unknown = 0,
-            Attacker = 1,
-            Defender = 2,
-            Empty = 3,
-        };
-        enum struct Orientation : std::uint32_t
-        {
-            Horizontal = 0,
-            Vertical = 1,
-            Downward = 2,
-            Upward = 3,
         };
         struct Board
         {
@@ -494,10 +502,13 @@ namespace Gomoku
             };
             struct Forbids
             {
+            private:
+                static constexpr const std::uint32_t Box = 0xFFu;
             public:
                 struct NibbleRef
                 {
                 private:
+                    static constexpr const std::uint32_t Box = 0xFu;
                     std::uint32_t* Po;
                     int i;
                 public:
@@ -507,12 +518,13 @@ namespace Gomoku
                     constexpr operator int() const
                     {
                         int Shift = i * 4;
-                        return static_cast<int>((*Po & (0xFu << Shift)) >> Shift);
+                        return static_cast<int>((*Po >> Shift) & Box);
                     };
                     constexpr void operator =(int value) const
                     {
                         int Shift = i * 4;
-                        *Po = ((static_cast<std::uint32_t>(value) & 0xFu) << Shift) | (*Po & ~(0xFu << Shift));
+                        *Po &= ~(Box << Shift);
+                        *Po |= (static_cast<std::uint32_t>(value) & Box) << Shift;
                     };
                     constexpr void operator +=(int value) const
                     {
@@ -528,35 +540,39 @@ namespace Gomoku
             public:
                 constexpr Position P0() const &
                 {
-                    return static_cast<Position>(Po & 0xFFu);
+                    return static_cast<Position>(Po & Box);
                 };
                 constexpr void P0(Position value) &
                 {
-                    Po = static_cast<std::uint32_t>(value) | (Po & 0xFFFFFF00u);
+                    Po &= ~Box;
+                    Po |= static_cast<std::uint32_t>(value);
                 };
                 constexpr Position P1() const &
                 {
-                    return static_cast<Position>((Po & 0xFF00u) >> 8);
+                    return static_cast<Position>((Po >> 8) & Box);
                 };
                 constexpr void P1(Position value) &
                 {
-                    Po = (static_cast<std::uint32_t>(value) << 8) | (Po & 0xFFFF00FFu);
+                    Po &= ~(Box << 8);
+                    Po |= static_cast<std::uint32_t>(value) << 8;
                 };
                 constexpr Position P2() const &
                 {
-                    return static_cast<Position>((Po & 0xFF0000u) >> 16);
+                    return static_cast<Position>((Po >> 16) & Box);
                 };
                 constexpr void P2(Position value) &
                 {
-                    Po = (static_cast<std::uint32_t>(value) << 16) | (Po & 0xFF00FFFFu);
+                    Po &= ~(Box << 16);
+                    Po |= static_cast<std::uint32_t>(value) << 16;
                 };
                 constexpr Position P3() const &
                 {
-                    return static_cast<Position>((Po & 0xFF000000u) >> 24);
+                    return static_cast<Position>((Po >> 24) & Box);
                 };
                 constexpr void P3(Position value) &
                 {
-                    Po = (static_cast<std::uint32_t>(value) << 24) | (Po & 0xFFFFFFu);
+                    Po &= ~(Box << 24);
+                    Po |= static_cast<std::uint32_t>(value) << 24;
                 };
                 constexpr NibbleRef operator[](int i) &
                 {
@@ -568,8 +584,11 @@ namespace Gomoku
                     return static_cast<int>((Po & (0xFu << Shift)) >> Shift);
                 };
                 constexpr Forbids(Position Po)
-                    : Po{ static_cast<std::uint32_t>(Po) | (static_cast<std::uint32_t>(Po) << 8) | (static_cast<std::uint32_t>(Po) << 16) | (static_cast<std::uint32_t>(Po) << 24) }
-                {};
+                    : Po{ static_cast<std::uint32_t>(Po) }
+                {
+                    this->Po |= this->Po << 8;
+                    this->Po |= this->Po << 16;
+                };
             };
             static const Group B3[12];
             static const Pack D4[6];

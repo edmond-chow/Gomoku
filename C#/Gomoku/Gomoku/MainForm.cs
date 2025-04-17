@@ -233,7 +233,9 @@ namespace Gomoku
             }
             public Position(int X, int Y)
             {
-                Coord = (byte)((X & 0xF) | ((Y & 0xF) << 4));
+                Coord = 0u;
+                this.X = X;
+                this.Y = Y;
             }
             public static explicit operator byte(Position Po)
             {
@@ -425,6 +427,7 @@ namespace Gomoku
             public struct Forbids
             {
                 private const uint Box = 0xFFu;
+                private const uint Nibble = 0xFu;
                 private uint Po;
                 public Position P0
                 {
@@ -479,17 +482,20 @@ namespace Gomoku
                     get
                     {
                         int Shift = i * 4;
-                        return (int)((Po & (0xFu << Shift)) >> Shift);
+                        return (int)((Po >> Shift) & Nibble);
                     }
                     set
                     {
                         int Shift = i * 4;
-                        Po = (((uint)value & 0xFu) << Shift) | (Po & ~(0xFu << Shift));
+                        Po &= ~(Nibble << Shift);
+                        Po |= ((uint)value & Nibble) << Shift;
                     }
                 }
                 public Forbids(Position Po)
                 {
-                    this.Po = (uint)Po | ((uint)Po << 8) | ((uint)Po << 16) | ((uint)Po << 24);
+                    this.Po = (uint)Po;
+                    this.Po |= this.Po << 8;
+                    this.Po |= this.Po << 16;
                 }
             }
             public static readonly Group[] B3;

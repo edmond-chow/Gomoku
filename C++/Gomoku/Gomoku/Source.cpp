@@ -215,7 +215,7 @@ namespace Gomoku
             constexpr Position(int X, int Y)
                 : Coord{ 0u }
             {
-				this->X(X);
+                this->X(X);
                 this->Y(Y);
             };
             constexpr explicit operator std::uint8_t()

@@ -38,6 +38,7 @@ namespace Gomoku
         static constexpr const std::uint32_t Byte = 0xFFu;
         static constexpr const std::uint32_t Nibble = 0xFu;
         static constexpr const std::uint32_t Box = 0b11u;
+        static constexpr const std::uint32_t Bit = 0b1u;
 #pragma endregion
 #pragma region helper-classes
     public:
@@ -611,20 +612,9 @@ namespace Gomoku
                 std::uint32_t Result = 0;
                 for (int Shift = 0; Shift < 18; Shift += 2)
                 {
-                    std::uint32_t Temp = (Li >> Shift) & Box;
-                    if (Temp == static_cast<std::uint32_t>(Chess::None)) { Temp = static_cast<std::uint32_t>(Player::Empty); }
-                    else if (Temp == static_cast<std::uint32_t>(Chess::Unspecified)) { Temp = static_cast<std::uint32_t>(Player::Unknown); }
-                    else if (Bk)
-                    {
-                        if (Temp == static_cast<std::uint32_t>(Chess::Black)) { Temp = static_cast<std::uint32_t>(Player::Attacker); }
-                        else if (Temp == static_cast<std::uint32_t>(Chess::White)) { Temp = static_cast<std::uint32_t>(Player::Defender); }
-                    }
-                    else
-                    {
-                        if (Temp == static_cast<std::uint32_t>(Chess::Black)) { Temp = static_cast<std::uint32_t>(Player::Defender); }
-                        else if (Temp == static_cast<std::uint32_t>(Chess::White)) { Temp = static_cast<std::uint32_t>(Player::Attacker); }
-                    }
-                    Result |= Temp << Shift;
+                    std::uint32_t Temp = Li >> Shift;
+                    if (!Bk || (Temp & Bit) == ((Temp >> 1) & Bit)) { Temp = ~Temp; }
+                    Result |= (Temp & Box) << Shift;
                 }
                 Result |= Li & 0xC0000000u;
                 return Result;

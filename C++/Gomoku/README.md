@@ -46,13 +46,13 @@ set denoted for Unspecified. The Counter is used to count the forbidden matches
 in a row on 4 Orientations. The Counter.MySide transfers the Chess encoded into
 a Player role while the Orientation is forward from Li with the same offset.
 
-[Black Side] Chess -> Player
+Black Side Transformation
 * Chess.None(0b00) -> Player.Empty(0b11)
 * Chess.Unspecified(0b11) -> Player.Unknown(0b00)
 * Chess.Black(0b01) -> Player.Attacker(0b01)
 * Chess.White(0b10) -> Player.Defender(0b10)
 
-[White Side] Chess -> Player
+White Side Transformation
 * Chess.None(0b00) -> Player.Empty(0b11)
 * Chess.Unspecified(0b11) -> Player.Unknown(0b00)
 * Chess.Black(0b01) -> Player.Defender(0b10)
@@ -68,5 +68,5 @@ where we just have to consider the rest when P0 and Po are identical.
 The CountMatches counts the forbidden matches in a row from a given Counter. The
 S3Forbid allocates a Counter for a suspected survive three to perform multilevel
 checks on each Orientation recursively. The MakeResult also allocates a Counter
-for normal Black or White chess process which only carry out forbidden rules to
-Black side and all six or more in a row counted as C5.
+for normal Black or White chess process, which only carry out forbidden rules to
+Black side.

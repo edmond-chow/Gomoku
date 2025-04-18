@@ -37,6 +37,7 @@ namespace Gomoku
         private const uint Byte = 0xFFu;
         private const uint Nibble = 0xFu;
         private const uint Box = 0b11u;
+        private const uint Bit = 0b1u;
         #endregion
         #region helper-classes
         public class Params
@@ -598,20 +599,9 @@ namespace Gomoku
                 uint Result = 0;
                 for (int Shift = 0; Shift < 18; Shift += 2)
                 {
-                    uint Temp = (Li >> Shift) & Box;
-                    if (Temp == (uint)Chess.None) { Temp = (uint)Player.Empty; }
-                    else if (Temp == (uint)Chess.Unspecified) { Temp = (uint)Player.Unknown; }
-                    else if (Bk)
-                    {
-                        if (Temp == (uint)Chess.Black) { Temp = (uint)Player.Attacker; }
-                        else if (Temp == (uint)Chess.White) { Temp = (uint)Player.Defender; }
-                    }
-                    else
-                    {
-                        if (Temp == (uint)Chess.Black) { Temp = (uint)Player.Defender; }
-                        else if (Temp == (uint)Chess.White) { Temp = (uint)Player.Attacker; }
-                    }
-                    Result |= Temp << Shift;
+                    uint Temp = Li >> Shift;
+                    if (!Bk || (Temp & Bit) == ((Temp >> 1) & Bit)) { Temp = ~Temp; }
+                    Result |= (Temp & Box) << Shift;
                 }
                 Result |= Li & 0xC0000000u;
                 return Result;

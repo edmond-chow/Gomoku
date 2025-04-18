@@ -36,8 +36,8 @@ namespace Gomoku
 #pragma region constants
     private:
         static constexpr const std::uint32_t Byte = 0xFFu;
-		static constexpr const std::uint32_t Nibble = 0xFu;
-		static constexpr const std::uint32_t Box = 0b11u;
+        static constexpr const std::uint32_t Nibble = 0xFu;
+        static constexpr const std::uint32_t Box = 0b11u;
 #pragma endregion
 #pragma region helper-classes
     public:

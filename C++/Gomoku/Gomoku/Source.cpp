@@ -33,6 +33,12 @@ namespace Gomoku
 {
     class MainForm
     {
+#pragma region constants
+    private:
+        static constexpr const std::uint32_t Byte = 0xFFu;
+		static constexpr const std::uint32_t Nibble = 0xFu;
+		static constexpr const std::uint32_t Box = 0b11u;
+#pragma endregion
 #pragma region helper-classes
     public:
         class Params
@@ -183,9 +189,6 @@ namespace Gomoku
         };
         struct Position
         {
-        private:
-            static constexpr const std::uint32_t Whole = 0xFFu;
-            static constexpr const std::uint32_t Box = 0xFu;
         public:
             static const Position Null;
         private:
@@ -193,21 +196,21 @@ namespace Gomoku
         public:
             constexpr int X() const &
             {
-                return static_cast<int>(Coord & Box);
+                return static_cast<int>(Coord & Nibble);
             };
             constexpr void X(int value) &
             {
-                Coord &= ~Box;
-                Coord |= static_cast<std::uint32_t>(value) & Box;
+                Coord &= ~Nibble;
+                Coord |= static_cast<std::uint32_t>(value) & Nibble;
             };
             constexpr int Y() const &
             {
-                return static_cast<int>((Coord >> 4) & Box);
+                return static_cast<int>((Coord >> 4) & Nibble);
             };
             constexpr void Y(int value) &
             {
-                Coord &= ~(Box << 4);
-                Coord |= (static_cast<std::uint32_t>(value) & Box) << 4;
+                Coord &= ~(Nibble << 4);
+                Coord |= (static_cast<std::uint32_t>(value) & Nibble) << 4;
             };
             constexpr explicit Position(std::uint8_t B)
                 : Coord{ B }
@@ -220,19 +223,19 @@ namespace Gomoku
             };
             constexpr explicit operator std::uint8_t()
             {
-                return static_cast<std::uint8_t>(Coord & Whole);
+                return static_cast<std::uint8_t>(Coord & Byte);
             };
             constexpr explicit operator std::uint16_t()
             {
-                return static_cast<std::uint16_t>(Coord & Whole);
+                return static_cast<std::uint16_t>(Coord & Byte);
             };
             constexpr explicit operator std::uint32_t()
             {
-                return static_cast<std::uint32_t>(Coord & Whole);
+                return static_cast<std::uint32_t>(Coord & Byte);
             };
             constexpr explicit operator std::uint64_t()
             {
-                return static_cast<std::uint64_t>(Coord & Whole);
+                return static_cast<std::uint64_t>(Coord & Byte);
             };
             friend static constexpr bool operator ==(Position L, Position R)
             {
@@ -263,7 +266,7 @@ namespace Gomoku
                     int PoY = Po.Y();
                     if (PoX == 15 || PoY == 15) { return Chess::Unspecified; }
                     int Shift = PoX * 2;
-                    return static_cast<Chess>((Grid[PoY] & (0b11u << Shift)) >> Shift);
+                    return static_cast<Chess>((Grid[PoY] >> Shift) & Box);
                 };
                 constexpr Position Pos() const
                 {
@@ -291,7 +294,7 @@ namespace Gomoku
                     int PoY = Po.Y();
                     if (PoX == 15 || PoY == 15) { return Chess::Unspecified; }
                     int Shift = PoX * 2;
-                    return static_cast<Chess>((Grid[PoY] & (0b11u << Shift)) >> Shift);
+                    return static_cast<Chess>((Grid[PoY] >> Shift) & Box);
                 };
                 constexpr void operator =(Chess value) const
                 {
@@ -299,7 +302,8 @@ namespace Gomoku
                     int PoY = Po.Y();
                     if (PoX == 15 || PoY == 15) { return; }
                     int Shift = PoX * 2;
-                    Grid[PoY] = ((static_cast<std::uint32_t>(value) & 0b11u) << Shift) | (Grid[PoY] & ~(0b11u << Shift));
+					Grid[PoY] &= ~(Box << Shift);
+                    Grid[PoY] |= (static_cast<std::uint32_t>(value) & Box) << Shift;
                 };
                 constexpr Position Pos() const
                 {
@@ -448,8 +452,8 @@ namespace Gomoku
                     }
                     for (int Y = PoY - 4, E = PoY + 4; Y <= E; ++Y)
                     {
-                        if (Y < 0 || Y > 14 || ShiftX < 0 || ShiftX > 28) { Result |= 0b11u << ShiftR; }
-                        else { Result |= ((Grid[Y] >> ShiftX) & 0b11u) << ShiftR; }
+                        if (Y < 0 || Y > 14 || ShiftX < 0 || ShiftX > 28) { Result |= Box << ShiftR; }
+                        else { Result |= ((Grid[Y] >> ShiftX) & Box) << ShiftR; }
                         ShiftX += Step;
                         ShiftR += 2;
                     }
@@ -502,8 +506,6 @@ namespace Gomoku
             };
             struct Forbids
             {
-            private:
-                static constexpr const std::uint32_t Box = 0xFFu;
             public:
                 struct NibbleRef
                 {
@@ -540,38 +542,38 @@ namespace Gomoku
             public:
                 constexpr Position P0() const &
                 {
-                    return static_cast<Position>(Po & Box);
+                    return static_cast<Position>(Po & Byte);
                 };
                 constexpr void P0(Position value) &
                 {
-                    Po &= ~Box;
+                    Po &= ~Byte;
                     Po |= static_cast<std::uint32_t>(value);
                 };
                 constexpr Position P1() const &
                 {
-                    return static_cast<Position>((Po >> 8) & Box);
+                    return static_cast<Position>((Po >> 8) & Byte);
                 };
                 constexpr void P1(Position value) &
                 {
-                    Po &= ~(Box << 8);
+                    Po &= ~(Byte << 8);
                     Po |= static_cast<std::uint32_t>(value) << 8;
                 };
                 constexpr Position P2() const &
                 {
-                    return static_cast<Position>((Po >> 16) & Box);
+                    return static_cast<Position>((Po >> 16) & Byte);
                 };
                 constexpr void P2(Position value) &
                 {
-                    Po &= ~(Box << 16);
+                    Po &= ~(Byte << 16);
                     Po |= static_cast<std::uint32_t>(value) << 16;
                 };
                 constexpr Position P3() const &
                 {
-                    return static_cast<Position>((Po >> 24) & Box);
+                    return static_cast<Position>((Po >> 24) & Byte);
                 };
                 constexpr void P3(Position value) &
                 {
-                    Po &= ~(Box << 24);
+                    Po &= ~(Byte << 24);
                     Po |= static_cast<std::uint32_t>(value) << 24;
                 };
                 constexpr NibbleRef operator[](int i) &
@@ -609,7 +611,7 @@ namespace Gomoku
                 std::uint32_t Result = 0;
                 for (int Shift = 0; Shift < 18; Shift += 2)
                 {
-                    std::uint32_t Temp = (Li >> Shift) & 0b11u;
+                    std::uint32_t Temp = (Li >> Shift) & Box;
                     if (Temp == static_cast<std::uint32_t>(Chess::None)) { Temp = static_cast<std::uint32_t>(Player::Empty); }
                     else if (Temp == static_cast<std::uint32_t>(Chess::Unspecified)) { Temp = static_cast<std::uint32_t>(Player::Unknown); }
                     else if (Bk)

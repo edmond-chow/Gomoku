@@ -33,6 +33,11 @@ namespace Gomoku
 {
     public partial class MainForm : Form
     {
+        #region constants
+        private const uint Byte = 0xFFu;
+        private const uint Nibble = 0xFu;
+        private const uint Box = 0b11u;
+        #endregion
         #region helper-classes
         public class Params
         {
@@ -195,32 +200,30 @@ namespace Gomoku
         }
         private struct Position
         {
-            private const uint Whole = 0xFFu;
-            private const uint Box = 0xFu;
             public static readonly Position Null;
             private uint Coord;
             public int X
             {
                 get
                 {
-                    return (int)(Coord & Box);
+                    return (int)(Coord & Nibble);
                 }
                 set
                 {
-                    Coord &= ~Box;
-                    Coord |= (uint)value & Box;
+                    Coord &= ~Nibble;
+                    Coord |= (uint)value & Nibble;
                 }
             }
             public int Y
             {
                 get
                 {
-                    return (int)((Coord >> 4) & Box);
+                    return (int)((Coord >> 4) & Nibble);
                 }
                 set
                 {
-                    Coord &= ~(Box << 4);
-                    Coord |= ((uint)value & Box) << 4;
+                    Coord &= ~(Nibble << 4);
+                    Coord |= ((uint)value & Nibble) << 4;
                 }
             }
             static Position()
@@ -239,7 +242,7 @@ namespace Gomoku
             }
             public static explicit operator byte(Position Po)
             {
-                return (byte)(Po.Coord & Whole);
+                return (byte)(Po.Coord & Byte);
             }
             public static explicit operator Position(byte B)
             {
@@ -277,13 +280,14 @@ namespace Gomoku
                 {
                     if (Po.X == 15 || Po.Y == 15) { return Chess.Unspecified; }
                     int Shift = Po.X * 2;
-                    return (Chess)((Grid[Po.Y] & (0b11u << Shift)) >> Shift);
+                    return (Chess)((Grid[Po.Y] >> Shift) & Box);
                 }
                 set
                 {
                     if (Po.X == 15 || Po.Y == 15) { return; }
                     int Shift = Po.X * 2;
-                    Grid[Po.Y] = (((uint)value & 0b11u) << Shift) | (Grid[Po.Y] & ~(0b11u << Shift));
+                    Grid[Po.Y] &= ~(Box << Shift);
+                    Grid[Po.Y] |= ((uint)value & Box) << Shift;
                 }
             }
             public readonly struct ChessRef
@@ -299,7 +303,7 @@ namespace Gomoku
                 {
                     if (ChessRef.Po.X == 15 || ChessRef.Po.Y == 15) { return Chess.Unspecified; }
                     int Shift = ChessRef.Po.X * 2;
-                    return (Chess)((ChessRef.Grid[ChessRef.Po.Y] & (0b11u << Shift)) >> Shift);
+                    return (Chess)((ChessRef.Grid[ChessRef.Po.Y] >> Shift) & Box);
                 }
                 public Position Pos
                 {
@@ -370,8 +374,8 @@ namespace Gomoku
                     }
                     for (int Y = Po.Y - 4, E = Po.Y + 4; Y <= E; ++Y)
                     {
-                        if (Y < 0 || Y > 14 || ShiftX < 0 || ShiftX > 28) { Result |= 0b11u << ShiftR; }
-                        else { Result |= ((Grid[Y] >> ShiftX) & 0b11u) << ShiftR; }
+                        if (Y < 0 || Y > 14 || ShiftX < 0 || ShiftX > 28) { Result |= Box << ShiftR; }
+                        else { Result |= ((Grid[Y] >> ShiftX) & Box) << ShiftR; }
                         ShiftX += Step;
                         ShiftR += 2;
                     }
@@ -426,18 +430,16 @@ namespace Gomoku
             }
             public struct Forbids
             {
-                private const uint Box = 0xFFu;
-                private const uint Nibble = 0xFu;
                 private uint Po;
                 public Position P0
                 {
                     get
                     {
-                        return (Position)(Po & Box);
+                        return (Position)(Po & Byte);
                     }
                     set
                     {
-                        Po &= ~Box;
+                        Po &= ~Byte;
                         Po |= (uint)value;
                     }
                 }
@@ -445,11 +447,11 @@ namespace Gomoku
                 {
                     get
                     {
-                        return (Position)((Po >> 8) & Box);
+                        return (Position)((Po >> 8) & Byte);
                     }
                     set
                     {
-                        Po &= ~(Box << 8);
+                        Po &= ~(Byte << 8);
                         Po |= (uint)value << 8;
                     }
                 }
@@ -457,11 +459,11 @@ namespace Gomoku
                 {
                     get
                     {
-                        return (Position)((Po >> 16) & Box);
+                        return (Position)((Po >> 16) & Byte);
                     }
                     set
                     {
-                        Po &= ~(Box << 16);
+                        Po &= ~(Byte << 16);
                         Po |= (uint)value << 16;
                     }
                 }
@@ -469,11 +471,11 @@ namespace Gomoku
                 {
                     get
                     {
-                        return (Position)((Po >> 24) & Box);
+                        return (Position)((Po >> 24) & Byte);
                     }
                     set
                     {
-                        Po &= ~(Box << 24);
+                        Po &= ~(Byte << 24);
                         Po |= (uint)value << 24;
                     }
                 }
@@ -596,7 +598,7 @@ namespace Gomoku
                 uint Result = 0;
                 for (int Shift = 0; Shift < 18; Shift += 2)
                 {
-                    uint Temp = (Li >> Shift) & 0b11u;
+                    uint Temp = (Li >> Shift) & Box;
                     if (Temp == (uint)Chess.None) { Temp = (uint)Player.Empty; }
                     else if (Temp == (uint)Chess.Unspecified) { Temp = (uint)Player.Unknown; }
                     else if (Bk)

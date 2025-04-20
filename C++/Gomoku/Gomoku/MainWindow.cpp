@@ -33,7 +33,7 @@
 #include "res.h"
 namespace Gomoku
 {
-    class MainForm
+    class MainWindow
     {
 #pragma region constants
     private:
@@ -648,16 +648,9 @@ namespace Gomoku
 #pragma endregion
 #pragma region constructors-and-methods
         public:
-            MainForm()
-                : Pa{ &Params::Default }, Po{ Position::Null }, Re{ Result::None }, Bo{}, BtnReset{ 0 }, Gdiplus{ NULL }, Window{ NULL }, Dragging{ false }
-            {};
-            MainForm(const Params* Pa)
-                : Pa{ Pa }, Po{ Position::Null }, Re{ Result::None }, Bo{}, BtnReset{ 0 }, Gdiplus{ NULL }, Window{ NULL }, Dragging{ false }
-            {};
-            static void Run(MainForm& Form)
-            {
-                Form.Constructor();
-            };
+            MainWindow();
+            MainWindow(const Params* Pa);
+            static void Run(MainWindow& Form);
         private:
             void Constructor() &
             {
@@ -992,10 +985,10 @@ namespace Gomoku
             };
 #pragma endregion
 #pragma region event-handlers
-        public:
+        private:
             static LRESULT CALLBACK WindowProcedure(HWND wnd, UINT msg, WPARAM wp, LPARAM lp)
             {
-                MainForm* ths = reinterpret_cast<MainForm*>(GetWindowLongPtrW(wnd, GWLP_USERDATA));
+                MainWindow* ths = reinterpret_cast<MainWindow*>(GetWindowLongPtrW(wnd, GWLP_USERDATA));
                 Gdiplus::Point Pt{ LOWORD(lp), HIWORD(lp) };
                 switch (msg)
                 {
@@ -1031,7 +1024,7 @@ namespace Gomoku
                     }
                     break;
                 case WM_CREATE:
-                    ths = reinterpret_cast<MainForm*>(reinterpret_cast<LPCREATESTRUCT>(lp)->lpCreateParams);
+                    ths = reinterpret_cast<MainWindow*>(reinterpret_cast<LPCREATESTRUCT>(lp)->lpCreateParams);
                     SetWindowLongPtrW(wnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(ths));
                     Gdiplus::GdiplusStartup(&ths->Gdiplus, &Params::StartupInput, nullptr);
                     ths->Window = wnd;
@@ -1055,17 +1048,17 @@ namespace Gomoku
 #pragma endregion
     };
 #pragma region global-initializes
-    constexpr const MainForm::Params MainForm::Params::Default{};
-    const Gdiplus::Color MainForm::Params::BoardColor{ 0xFFF5DEB3 };
-    const Gdiplus::Color MainForm::Params::LineColor{ 0xFFDEB887 };
-    const Gdiplus::Color MainForm::Params::ShadowColor{ 0x10000000 };
-    const Gdiplus::Color MainForm::Params::BlackChessLightColor{ 0xFFA0A0A0 };
-    const Gdiplus::Color MainForm::Params::BlackChessDarkColor{ 0xFF000000 };
-    const Gdiplus::Color MainForm::Params::WhiteChessLightColor{ 0xFFFFFFFF };
-    const Gdiplus::Color MainForm::Params::WhiteChessDarkColor{ 0xFFF0F0F0 };
-    const Gdiplus::GdiplusStartupInput MainForm::Params::StartupInput{};
-    constexpr const MainForm::Position MainForm::Position::Null{ 15, 15 };
-    constexpr const MainForm::Counter::Group MainForm::Counter::B3[12]{
+    constexpr const MainWindow::Params MainWindow::Params::Default{};
+    const Gdiplus::Color MainWindow::Params::BoardColor{ 0xFFF5DEB3 };
+    const Gdiplus::Color MainWindow::Params::LineColor{ 0xFFDEB887 };
+    const Gdiplus::Color MainWindow::Params::ShadowColor{ 0x10000000 };
+    const Gdiplus::Color MainWindow::Params::BlackChessLightColor{ 0xFFA0A0A0 };
+    const Gdiplus::Color MainWindow::Params::BlackChessDarkColor{ 0xFF000000 };
+    const Gdiplus::Color MainWindow::Params::WhiteChessLightColor{ 0xFFFFFFFF };
+    const Gdiplus::Color MainWindow::Params::WhiteChessDarkColor{ 0xFFF0F0F0 };
+    const Gdiplus::GdiplusStartupInput MainWindow::Params::StartupInput{};
+    constexpr const MainWindow::Position MainWindow::Position::Null{ 15, 15 };
+    constexpr const MainWindow::Counter::Group MainWindow::Counter::B3[12]{
         Group{ -3, -4, 1, 2 },
         Group{ -3, -4, 1, 2 },
         Group{ -2, -3, 2, 3 },
@@ -1079,7 +1072,7 @@ namespace Gomoku
         Group{ 0, -1, -4, 1 },
         Group{ 0, 1, -1, 4 },
     };
-    constexpr const MainForm::Counter::Pack MainForm::Counter::D4[6]{
+    constexpr const MainWindow::Counter::Pack MainWindow::Counter::D4[6]{
         Pack{ 0b111111111111111111u, 0b010101110111010101u },
         Pack{ 0b001111111111111111u, 0b000101110101110101u },
         Pack{ 0b111111111111111100u, 0b010111010111010100u },
@@ -1087,7 +1080,7 @@ namespace Gomoku
         Pack{ 0b001111111111111100u, 0b000111010101110100u },
         Pack{ 0b111111111111110000u, 0b011101010111010000u },
     };
-    constexpr const MainForm::Counter::Pack MainForm::Counter::T3[12]{
+    constexpr const MainWindow::Counter::Pack MainWindow::Counter::T3[12]{
         Pack{ 0b000000111111111111u, 0b000000110101011111u },
         Pack{ 0b000011111111111100u, 0b000011110101011100u },
         Pack{ 0b000011111111111100u, 0b000011010101111100u },
@@ -1101,7 +1094,7 @@ namespace Gomoku
         Pack{ 0b000000111111111111u, 0b000000110111010111u },
         Pack{ 0b111111111111000000u, 0b110101110111000000u },
     };
-    constexpr const MainForm::Counter::Pack MainForm::Counter::T4[20]{
+    constexpr const MainWindow::Counter::Pack MainWindow::Counter::T4[20]{
         Pack{ 0b000000001111111111u, 0b000000000101010111u },
         Pack{ 0b000000111111111100u, 0b000000110101010100u },
         Pack{ 0b000000111111111100u, 0b000000010101011100u },
@@ -1123,24 +1116,28 @@ namespace Gomoku
         Pack{ 0b000000001111111111u, 0b000000000111010101u },
         Pack{ 0b111111111100000000u, 0b010101110100000000u },
     };
-    constexpr const MainForm::Counter::Pack MainForm::Counter::T5[5]{
+    constexpr const MainWindow::Counter::Pack MainWindow::Counter::T5[5]{
         Pack{ 0b000000001111111111u, 0b000000000101010101u },
         Pack{ 0b000000111111111100u, 0b000000010101010100u },
         Pack{ 0b000011111111110000u, 0b000001010101010000u },
         Pack{ 0b001111111111000000u, 0b000101010101000000u },
         Pack{ 0b111111111100000000u, 0b010101010100000000u },
     };
-    constexpr const MainForm::Counter::Pack MainForm::Counter::T6[4]{
+    constexpr const MainWindow::Counter::Pack MainWindow::Counter::T6[4]{
         Pack{ 0b000000111111111111u, 0b000000010101010101u },
         Pack{ 0b000011111111111100u, 0b000001010101010100u },
         Pack{ 0b001111111111110000u, 0b000101010101010000u },
         Pack{ 0b111111111111000000u, 0b010101010101000000u },
     };
+    MainWindow::MainWindow()
+        : Pa{ &Params::Default }, Po{ Position::Null }, Re{ Result::None }, Bo{}, BtnReset{ 0 }, Gdiplus{ NULL }, Window{ NULL }, Dragging{ false }
+    {};
+    MainWindow::MainWindow(const Params* Pa)
+        : Pa{ Pa }, Po{ Position::Null }, Re{ Result::None }, Bo{}, BtnReset{ 0 }, Gdiplus{ NULL }, Window{ NULL }, Dragging{ false }
+    {};
+    void MainWindow::Run(MainWindow& Form)
+    {
+        Form.Constructor();
+    };
 #pragma endregion
 }
-int WINAPI wWinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE hPrevInst, _In_ LPWSTR args, _In_ int nCmdShow)
-{
-    Gomoku::MainForm Form;
-    Gomoku::MainForm::Run(Form);
-    return 0;
-};

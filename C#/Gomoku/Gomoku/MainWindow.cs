@@ -31,7 +31,7 @@ using System.Collections;
 using System.Windows.Forms;
 namespace Gomoku
 {
-    public partial class MainForm : Form
+    public partial class MainWindow : Form
     {
         #region constants
         private const uint Byte = 0xFFu;
@@ -632,12 +632,12 @@ namespace Gomoku
         bool Dragging;
         #endregion
         #region constructors-and-methods
-        public MainForm()
+        public MainWindow()
         {
             Pa = new Params();
             Constructor();
         }
-        public MainForm(Params Params)
+        public MainWindow(Params Params)
         {
             Pa = Params;
             Constructor();
